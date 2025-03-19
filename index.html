@@ -7,10 +7,10 @@
     <style>
         @font-face {
             font-family: 'TeachingPrintDotted';
-            src: url('./TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
+            src: url('TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
-            font-display: swap;
+            font-display: block;
         }
         
         body {
@@ -129,6 +129,9 @@
     <div class="container">
         <h1>Letter Tracing Practice</h1>
         
+        <!-- Preload the font to ensure it loads -->
+        <div style="font-family: 'TeachingPrintDotted'; position: absolute; visibility: hidden;">Preload Font</div>
+        
         <div class="controls">
             <label for="letterSelect">Choose a letter:</label>
             <select id="letterSelect">
@@ -219,27 +222,41 @@
                 // Set the font properties for the letter - DOUBLED SIZE
                 const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 1.4; // Doubled from 0.7
                 
-                // Draw the letter with the dotted font (visible to user)
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                letterCtx.textAlign = 'center';
-                letterCtx.textBaseline = 'middle';
-                letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, centerX, centerY);
+                // Make sure font is loaded before drawing
+            const fontCheck = setInterval(function() {
+                try {
+                    letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                    letterCtx.textAlign = 'center';
+                    letterCtx.textBaseline = 'middle';
+                    letterCtx.fillStyle = '#888';
+                    letterCtx.fillText(letter, centerX, centerY);
+                    
+                    // Font is drawn, now create the detection layer
+                    setupDetectionLayer(letter, fontSize, centerX, centerY);
+                    
+                    clearInterval(fontCheck);
+                } catch (e) {
+                    console.log("Font not loaded yet, retrying...");
+                }
+            }, 100);
                 
-                // Draw a solid version in the detection canvas (for hit detection)
-                // Use a thicker version for easier tracing
-                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                detectionCtx.textAlign = 'center';
-                detectionCtx.textBaseline = 'middle';
-                
-                // Create a wide detection area with higher sensitivity
-                detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
-                
-                // Draw multiple overlapping copies to create a thicker detection area
-                const offset = 20; // High sensitivity - wide margin of error
-                for (let offsetX = -offset; offsetX <= offset; offsetX += 5) {
-                    for (let offsetY = -offset; offsetY <= offset; offsetY += 5) {
-                        detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
+                // This was moved to a separate function for better font loading
+                function setupDetectionLayer(letter, fontSize, centerX, centerY) {
+                    // Draw a solid version in the detection canvas (for hit detection)
+                    // Use a thicker version for easier tracing
+                    detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                    detectionCtx.textAlign = 'center';
+                    detectionCtx.textBaseline = 'middle';
+                    
+                    // Create a wide detection area with higher sensitivity
+                    detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
+                    
+                    // Draw multiple overlapping copies to create a thicker detection area
+                    const offset = 20; // High sensitivity - wide margin of error
+                    for (let offsetX = -offset; offsetX <= offset; offsetX += 5) {
+                        for (let offsetY = -offset; offsetY <= offset; offsetY += 5) {
+                            detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
+                        }
                     }
                 }
             }
