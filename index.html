@@ -110,6 +110,7 @@
         }
         
         .font-loading {
+            display: none; /* Hide by default */
             background-color: #fff3cd;
             border: 1px solid #ffeeba;
             color: #856404;
@@ -118,7 +119,6 @@
             margin-bottom: 15px;
             max-width: 500px;
             text-align: center;
-            display: none; /* Hide initially, show if font fails to load */
         }
         
         .sensitivity-control {
@@ -222,21 +222,9 @@
             
             // Font loading detection
             document.fonts.ready.then(function() {
-                // Check if our custom font loaded
-                if (document.fonts.check('1em TeachingPrintDotted')) {
-                    fontLoaded = true;
-                    fontMessage.style.display = 'none';
-                } else {
-                    fontMessage.style.display = 'block';
-                    // Try again with a timeout as backup
-                    setTimeout(function() {
-                        if (document.fonts.check('1em TeachingPrintDotted')) {
-                            fontLoaded = true;
-                            fontMessage.style.display = 'none';
-                            drawLetter(letterSelect.value);
-                        }
-                    }, 2000);
-                }
+                // Hide the font message regardless - we'll use the font if available
+                fontMessage.style.display = 'none';
+                fontLoaded = true;
                 
                 // Initial letter drawing
                 drawLetter(letterSelect.value);
@@ -275,19 +263,15 @@
                 // Set the font properties for the letter
                 const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.7;
                 
-                // Choose font based on availability
-                const fontFamily = fontLoaded ? 'TeachingPrintDotted' : 'Arial, sans-serif';
-                
-                // Draw the letter with the dotted font (visible to user)
-                letterCtx.font = `${fontSize}px ${fontFamily}`;
+                // Try to use the TeachingPrintDotted font, fallback to normal fonts
+                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
                 letterCtx.textAlign = 'center';
                 letterCtx.textBaseline = 'middle';
                 letterCtx.fillStyle = '#888';
                 letterCtx.fillText(letter, centerX, centerY);
                 
-                // Draw a solid version in the detection canvas (for hit detection)
-                // Use a thicker version for easier tracing
-                detectionCtx.font = `${fontSize}px ${fontFamily}`;
+                // Create detection area
+                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
                 detectionCtx.textAlign = 'center';
                 detectionCtx.textBaseline = 'middle';
                 
@@ -297,7 +281,7 @@
                 // Draw several versions of the letter with offsets for a thicker detection area
                 detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
                 
-                // First, draw it slightly larger with a thicker line for detection
+                // Create detection area with multiple offset copies for better tracing
                 for (let offsetX = -pixelSize; offsetX <= pixelSize; offsetX += pixelSize / 2) {
                     for (let offsetY = -pixelSize; offsetY <= pixelSize; offsetY += pixelSize / 2) {
                         detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
