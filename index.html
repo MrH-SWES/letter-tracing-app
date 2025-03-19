@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Letter Tracing Practice</title>
     <style>
-        /* Font embedding - using the exact font file you provided */
         @font-face {
             font-family: 'TeachingPrintDotted';
             src: url('./TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
-            font-display: swap; /* Ensures text remains visible during font loading */
+            font-display: swap;
         }
         
         body {
@@ -89,6 +88,15 @@
             touch-action: none;
         }
         
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
         #letterCanvas {
             z-index: 1; /* Bottom layer - letter template */
         }
@@ -101,6 +109,10 @@
         
         #drawingCanvas {
             z-index: 3; /* Top layer - user drawing */
+        }
+        
+        #tracingSvg {
+            z-index: 4; /* SVG for the perfect tracing */
         }
         
         h1 {
@@ -121,13 +133,22 @@
             text-align: center;
         }
         
-        .sensitivity-control {
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
+        /* Letter paths for each letter */
+        path.letter-path {
+            fill: none;
+            stroke: #888;
+            stroke-width: 2;
+            stroke-dasharray: 5, 3;
+        }
+        
+        path.tracing-path {
+            fill: none;
+            stroke: black;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 0;
+            stroke-dashoffset: 0;
         }
         
         /* Add responsive adjustments */
@@ -136,7 +157,7 @@
                 height: 350px;
             }
             
-            .controls, .sensitivity-control {
+            .controls {
                 flex-direction: column;
                 align-items: stretch;
             }
@@ -152,7 +173,7 @@
         <h1>Letter Tracing Practice</h1>
         
         <div class="font-loading" id="fontMessage">
-            The Teaching Print Dotted font is loading. If this message remains, please check your internet connection.
+            The Teaching Print Dotted font is loading...
         </div>
         
         <div class="controls">
@@ -192,11 +213,7 @@
             <canvas id="letterCanvas"></canvas>
             <canvas id="detectionCanvas"></canvas>
             <canvas id="drawingCanvas"></canvas>
-        </div>
-        
-        <div class="sensitivity-control">
-            <label for="sensitivitySlider">Tracing Sensitivity:</label>
-            <input type="range" id="sensitivitySlider" min="1" max="20" value="8">
+            <svg id="tracingSvg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
     </div>
 
@@ -205,30 +222,49 @@
             const letterCanvas = document.getElementById('letterCanvas');
             const detectionCanvas = document.getElementById('detectionCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
+            const tracingSvg = document.getElementById('tracingSvg');
             const letterSelect = document.getElementById('letterSelect');
             const clearButton = document.getElementById('clearButton');
             const fontMessage = document.getElementById('fontMessage');
-            const sensitivitySlider = document.getElementById('sensitivitySlider');
             
             const letterCtx = letterCanvas.getContext('2d');
             const detectionCtx = detectionCanvas.getContext('2d');
             const drawCtx = drawingCanvas.getContext('2d');
             
-            let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
-            let sensitivity = parseInt(sensitivitySlider.value);
-            let fontLoaded = false;
+            // Letter paths definitions - using SVG path format
+            const letterPaths = {
+                a: "M 50,70 C 35,70 25,60 25,45 C 25,30 35,20 50,20 C 65,20 75,30 75,45 L 75,70 M 25,45 L 75,45",
+                b: "M 30,20 L 30,70 C 30,55 40,45 55,45 C 70,45 80,55 80,62.5 C 80,70 70,80 55,80 C 40,80 30,70 30,55",
+                c: "M 75,35 C 70,25 60,20 50,20 C 35,20 25,30 25,50 C 25,70 35,80 50,80 C 60,80 70,75 75,65",
+                d: "M 70,20 L 70,70 C 70,55 60,45 45,45 C 30,45 20,55 20,62.5 C 20,70 30,80 45,80 C 60,80 70,70 70,55",
+                e: "M 75,50 C 75,30 60,20 50,20 C 35,20 25,30 25,50 C 25,70 35,80 50,80 C 65,80 75,70 75,50 L 25,50",
+                f: "M 60,25 C 60,20 55,15 45,15 C 35,15 30,20 30,30 L 30,70 M 20,40 L 50,40",
+                g: "M 70,45 C 70,30 60,20 45,20 C 30,20 20,30 20,45 C 20,60 30,70 45,70 C 60,70 70,60 70,45 L 70,80 C 70,90 60,95 50,95",
+                h: "M 30,20 L 30,70 M 30,45 C 30,45 40,35 55,35 C 70,35 75,45 75,50 L 75,70",
+                i: "M 50,20 L 50,20 M 50,30 L 50,70",
+                j: "M 60,20 L 60,20 M 60,30 L 60,75 C 60,85 50,90 45,90",
+                k: "M 30,20 L 30,70 M 70,30 L 30,50 L 70,70",
+                l: "M 50,20 L 50,70",
+                m: "M 20,70 L 20,35 C 20,35 25,25 35,25 C 45,25 50,35 50,35 C 50,35 55,25 65,25 C 75,25 80,35 80,35 L 80,70",
+                n: "M 30,70 L 30,35 C 30,35 35,25 50,25 C 65,25 70,35 70,35 L 70,70",
+                o: "M 50,20 C 30,20 20,35 20,45 C 20,55 30,70 50,70 C 70,70 80,55 80,45 C 80,35 70,20 50,20",
+                p: "M 30,30 L 30,90 M 30,45 C 30,45 40,35 55,35 C 70,35 80,45 80,57.5 C 80,70 70,80 55,80 C 40,80 30,70 30,70",
+                q: "M 70,30 L 70,90 M 70,45 C 70,45 60,35 45,35 C 30,35 20,45 20,57.5 C 20,70 30,80 45,80 C 60,80 70,70 70,70",
+                r: "M 30,70 L 30,35 C 30,35 35,25 50,25 C 65,25 70,35 70,35",
+                s: "M 70,30 C 65,25 55,20 45,20 C 35,20 25,25 25,35 C 25,55 75,45 75,65 C 75,75 65,80 55,80 C 45,80 35,75 30,70",
+                t: "M 50,20 L 50,60 C 50,70 55,75 65,75 M 35,40 L 65,40",
+                u: "M 30,30 L 30,60 C 30,65 35,75 50,75 C 65,75 70,65 70,60 L 70,30",
+                v: "M 30,30 L 50,70 L 70,30",
+                w: "M 20,30 L 35,70 L 50,30 L 65,70 L 80,30",
+                x: "M 30,30 L 70,70 M 70,30 L 30,70",
+                y: "M 30,30 L 50,70 M 70,30 L 50,70 L 50,90 C 50,95 45,100 40,100",
+                z: "M 30,30 L 70,30 L 30,70 L 70,70"
+            };
             
-            // Font loading detection
-            document.fonts.ready.then(function() {
-                // Hide the font message regardless - we'll use the font if available
-                fontMessage.style.display = 'none';
-                fontLoaded = true;
-                
-                // Initial letter drawing
-                drawLetter(letterSelect.value);
-            });
+            let activeSegmentIndex = 0;
+            let currentPathSegments = [];
+            let letterPathObj = null;
+            let tracingPathObj = null;
             
             // Set canvas size based on container
             function resizeCanvas() {
@@ -243,54 +279,98 @@
                 drawingCanvas.width = width;
                 drawingCanvas.height = height;
                 
+                // Clear the SVG
+                tracingSvg.innerHTML = '';
+                
                 // Redraw the current letter when resizing
-                drawLetter(letterSelect.value);
+                const currentLetter = letterSelect.value;
+                drawLetter(currentLetter);
             }
             
             // Initialize canvas size
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             
-            // Draw the dotted letter
+            // Draw the letter with SVG path
             function drawLetter(letter) {
-                // Clear the canvas
+                // Clear canvases and SVG
                 letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
                 detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                tracingSvg.innerHTML = '';
                 
-                const centerX = letterCanvas.width / 2;
-                const centerY = letterCanvas.height / 2;
+                // Reset tracing progress
+                activeSegmentIndex = 0;
                 
-                // Set the font properties for the letter
-                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.7;
+                // Get path data for the letter
+                const pathData = letterPaths[letter];
                 
-                // Try to use the TeachingPrintDotted font, fallback to normal fonts
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                letterCtx.textAlign = 'center';
-                letterCtx.textBaseline = 'middle';
-                letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, centerX, centerY);
-                
-                // Create detection area
-                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                detectionCtx.textAlign = 'center';
-                detectionCtx.textBaseline = 'middle';
-                
-                // Create a thicker detection area based on sensitivity
-                const pixelSize = sensitivity / 4; // Adjust this ratio as needed
-                
-                // Draw several versions of the letter with offsets for a thicker detection area
-                detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
-                
-                // Create detection area with multiple offset copies for better tracing
-                for (let offsetX = -pixelSize; offsetX <= pixelSize; offsetX += pixelSize / 2) {
-                    for (let offsetY = -pixelSize; offsetY <= pixelSize; offsetY += pixelSize / 2) {
-                        detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
-                    }
+                if (!pathData) {
+                    console.error('No path data for letter:', letter);
+                    return;
                 }
+                
+                // Create the letter path in SVG
+                letterPathObj = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                letterPathObj.setAttribute('d', pathData);
+                letterPathObj.setAttribute('class', 'letter-path');
+                tracingSvg.appendChild(letterPathObj);
+                
+                // Create a path for the tracing (initially invisible)
+                tracingPathObj = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tracingPathObj.setAttribute('d', pathData);
+                tracingPathObj.setAttribute('class', 'tracing-path');
+                tracingPathObj.setAttribute('stroke-dasharray', tracingPathObj.getTotalLength());
+                tracingPathObj.setAttribute('stroke-dashoffset', tracingPathObj.getTotalLength());
+                tracingSvg.appendChild(tracingPathObj);
+                
+                // Parse the path into segments
+                parsePathIntoSegments(pathData);
+                
+                // Draw the letter on the detection canvas for hit testing
+                // Use a thicker version for easier detection
+                detectionCtx.strokeStyle = 'red';
+                detectionCtx.lineWidth = 20; // Make it thick for easy detection
+                detectionCtx.lineCap = 'round';
+                detectionCtx.lineJoin = 'round';
+                
+                // Draw the path on the detection canvas
+                const path = new Path2D(pathData);
+                detectionCtx.stroke(path);
             }
             
-            // Check if a point is on the letter outline
-            function isPointOnLetter(x, y) {
+            // Parse SVG path into segments for step-by-step tracing
+            function parsePathIntoSegments(pathData) {
+                // Split the path at 'M' commands (these indicate new subpaths)
+                const mainSegments = pathData.split(/(?=[Mm])/);
+                
+                currentPathSegments = [];
+                let totalLength = 0;
+                
+                // Process each main segment
+                mainSegments.forEach(segment => {
+                    // Create a temporary path to measure this segment
+                    const tempPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    tempPath.setAttribute('d', segment);
+                    tracingSvg.appendChild(tempPath);
+                    
+                    const segmentLength = tempPath.getTotalLength();
+                    
+                    currentPathSegments.push({
+                        data: segment,
+                        length: segmentLength,
+                        startOffset: totalLength
+                    });
+                    
+                    totalLength += segmentLength;
+                    
+                    // Remove the temporary path
+                    tracingSvg.removeChild(tempPath);
+                });
+            }
+            
+            // Check if a point is near the letter path
+            function isPointOnPath(x, y) {
                 // Get pixel data at the point
                 const pixel = detectionCtx.getImageData(x, y, 1, 1).data;
                 
@@ -298,54 +378,135 @@
                 return pixel[3] > 0;
             }
             
-            // Drawing functions
-            function startDrawing(e) {
-                isDrawing = true;
-                [lastX, lastY] = getCoordinates(e);
+            // Get the closest point on the current segment
+            function getClosestPointOnCurrentSegment(x, y) {
+                if (activeSegmentIndex >= currentPathSegments.length) {
+                    return null;
+                }
                 
-                // Check if the starting point is on the letter outline
-                if (isPointOnLetter(lastX, lastY)) {
-                    drawDot(lastX, lastY);
+                const currentSegment = currentPathSegments[activeSegmentIndex];
+                
+                // Create temporary path for the current segment
+                const tempPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tempPath.setAttribute('d', currentSegment.data);
+                tracingSvg.appendChild(tempPath);
+                
+                // Find closest point
+                const totalLength = tempPath.getTotalLength();
+                let closestPoint = null;
+                let closestDistance = Infinity;
+                
+                // Sample points along the path to find the closest one
+                const step = 5; // Sampling step size
+                for (let i = 0; i <= totalLength; i += step) {
+                    const pt = tempPath.getPointAtLength(i);
+                    
+                    // Convert SVG coordinates to canvas coordinates
+                    const canvasX = pt.x / 100 * letterCanvas.width;
+                    const canvasY = pt.y / 100 * letterCanvas.height;
+                    
+                    const distance = Math.hypot(canvasX - x, canvasY - y);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestPoint = {
+                            x: canvasX,
+                            y: canvasY,
+                            progress: i / totalLength
+                        };
+                    }
+                }
+                
+                // Remove temporary path
+                tracingSvg.removeChild(tempPath);
+                
+                return closestPoint;
+            }
+            
+            // Update the tracing progress
+            function updateTracingProgress(progress) {
+                const totalLength = tracingPathObj.getTotalLength();
+                tracingPathObj.style.strokeDashoffset = totalLength - (progress * totalLength);
+            }
+            
+            // Start tracing interaction
+            function startTracing(e) {
+                const [x, y] = getCoordinates(e);
+                
+                // Only proceed if we're on or near the path
+                if (isPointOnPath(x, y)) {
+                    drawingCanvas.style.cursor = 'pointer';
+                    
+                    // Get closest point on current segment
+                    const closestPoint = getClosestPointOnCurrentSegment(x, y);
+                    
+                    if (closestPoint) {
+                        // Calculate overall progress based on active segment and point progress
+                        let overallProgress = 0;
+                        
+                        // Add completed segments
+                        for (let i = 0; i < activeSegmentIndex; i++) {
+                            overallProgress += currentPathSegments[i].length;
+                        }
+                        
+                        // Add current segment progress
+                        overallProgress += closestPoint.progress * currentPathSegments[activeSegmentIndex].length;
+                        
+                        // Convert to 0-1 range
+                        overallProgress /= tracingPathObj.getTotalLength();
+                        
+                        // Update the visible tracing
+                        updateTracingProgress(overallProgress);
+                    }
                 }
             }
             
-            function draw(e) {
-                if (!isDrawing) return;
-                
-                e.preventDefault(); // Prevent scrolling on touch devices
-                
-                const [currentX, currentY] = getCoordinates(e);
-                
-                // Check if the current point is on the letter outline
-                if (isPointOnLetter(currentX, currentY)) {
-                    drawLine(lastX, lastY, currentX, currentY);
+            // Continue tracing
+            function continueTracing(e) {
+                if (activeSegmentIndex >= currentPathSegments.length) {
+                    return; // All segments completed
                 }
                 
-                [lastX, lastY] = [currentX, currentY];
-            }
-            
-            function stopDrawing() {
-                isDrawing = false;
-            }
-            
-            // Draw a dot at a specific point (for the start of drawing)
-            function drawDot(x, y) {
-                drawCtx.beginPath();
-                drawCtx.arc(x, y, 3, 0, Math.PI * 2);
-                drawCtx.fillStyle = 'black';
-                drawCtx.fill();
-            }
-            
-            // Draw a line between two points
-            function drawLine(fromX, fromY, toX, toY) {
-                drawCtx.beginPath();
-                drawCtx.moveTo(fromX, fromY);
-                drawCtx.lineTo(toX, toY);
-                drawCtx.strokeStyle = 'black';
-                drawCtx.lineWidth = 6;
-                drawCtx.lineCap = 'round';
-                drawCtx.lineJoin = 'round';
-                drawCtx.stroke();
+                const [x, y] = getCoordinates(e);
+                
+                // Only proceed if we're on or near the path
+                if (isPointOnPath(x, y)) {
+                    drawingCanvas.style.cursor = 'pointer';
+                    
+                    // Get closest point on current segment
+                    const closestPoint = getClosestPointOnCurrentSegment(x, y);
+                    
+                    if (closestPoint) {
+                        // Calculate overall progress based on active segment and point progress
+                        let overallProgress = 0;
+                        
+                        // Add completed segments
+                        for (let i = 0; i < activeSegmentIndex; i++) {
+                            overallProgress += currentPathSegments[i].length;
+                        }
+                        
+                        // Add current segment progress
+                        overallProgress += closestPoint.progress * currentPathSegments[activeSegmentIndex].length;
+                        
+                        // Convert to 0-1 range
+                        overallProgress /= tracingPathObj.getTotalLength();
+                        
+                        // Update the visible tracing
+                        updateTracingProgress(overallProgress);
+                        
+                        // Check if we've completed this segment
+                        if (closestPoint.progress > 0.95) {
+                            activeSegmentIndex++;
+                            
+                            // If we've completed all segments, show success
+                            if (activeSegmentIndex >= currentPathSegments.length) {
+                                console.log('Letter completed!');
+                            }
+                        }
+                    }
+                } else {
+                    drawingCanvas.style.cursor = 'default';
+                }
             }
             
             // Get coordinates for both mouse and touch events
@@ -367,34 +528,38 @@
             }
             
             // Event listeners for mouse
-            drawingCanvas.addEventListener('mousedown', startDrawing);
-            drawingCanvas.addEventListener('mousemove', draw);
-            document.addEventListener('mouseup', stopDrawing);
+            drawingCanvas.addEventListener('mousedown', startTracing);
+            drawingCanvas.addEventListener('mousemove', continueTracing);
             
             // Event listeners for touch devices
-            drawingCanvas.addEventListener('touchstart', startDrawing);
-            drawingCanvas.addEventListener('touchmove', draw);
-            document.addEventListener('touchend', stopDrawing);
+            drawingCanvas.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // Prevent scrolling
+                startTracing(e);
+            });
+            
+            drawingCanvas.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // Prevent scrolling
+                continueTracing(e);
+            });
             
             // Letter selection change
             letterSelect.addEventListener('change', function() {
                 drawLetter(this.value);
-                clearDrawing();
             });
             
             // Clear button
-            clearButton.addEventListener('click', clearDrawing);
-            
-            // Sensitivity slider
-            sensitivitySlider.addEventListener('input', function() {
-                sensitivity = parseInt(this.value);
-                // Redraw the letter to update the detection area
+            clearButton.addEventListener('click', function() {
                 drawLetter(letterSelect.value);
             });
             
-            function clearDrawing() {
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            }
+            // Initial letter
+            drawLetter(letterSelect.value);
+            
+            // Font loading check - removed as it's not needed anymore
+            document.fonts.ready.then(function() {
+                fontMessage.style.display = 'none';
+                // Initial letter drawing (done above, no need to do it again)
+            });
         });
     </script>
 </body>
