@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Letter Tracing Practice</title>
     <style>
+        .control-group button {
+            width: 100%;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: royalblue;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .control-group button:hover {
+            background-color: darkblue;
+        }
         @font-face {
             font-family: 'TeachingPrintDotted';
             src: url('TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
@@ -50,7 +66,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
             gap: 10px;
-            margin-bottom: 20px;
         }
 
         .letter-button {
@@ -105,23 +120,6 @@
             height: 100%;
             touch-action: none;
         }
-
-        .control-group button {
-            width: 100%;
-            padding: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            background-color: royalblue;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .control-group button:hover {
-            background-color: darkblue;
-        }
     </style>
 </head>
 <body>
@@ -129,6 +127,7 @@
         <div class="controls-panel">
             <h1>Letter Tracing Practice</h1>
             <div class="control-group">
+            
                 <label>Choose a letter:</label>
                 <div class="letter-grid">
                     <script>
@@ -137,11 +136,11 @@
                     </script>
                 </div>
             </div>
+        </div>
             <div class="control-group">
                 <button id="playNameButton">Play Name</button>
                 <button id="playSoundButton">Play Sound</button>
             </div>
-        </div>
         <div class="tracing-panel">
             <div class="canvas-container">
                 <canvas id="letterCanvas"></canvas>
@@ -152,43 +151,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Canvas setup
             const letterCanvas = document.getElementById('letterCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
             const letterCtx = letterCanvas.getContext('2d');
             const drawCtx = drawingCanvas.getContext('2d');
-            
-            // UI elements
             const letterButtons = document.querySelectorAll('.letter-button');
-            const playNameButton = document.getElementById('playNameButton');
-            const playSoundButton = document.getElementById('playSoundButton');
-            
-            // State variables
-            let currentLetter = '';
+            let currentLetter = ' ';
+            const nameAudio = new Audio(); nameAudio.preload = 'auto';
+            const soundAudio = new Audio(); soundAudio.preload = 'auto';
             let isDrawing = false;
-            let fontLoaded = false;
-            
-            // Audio setup
-            const nameAudio = new Audio();
-            nameAudio.preload = 'auto';
-            
-            const soundAudio = new Audio();
-            soundAudio.preload = 'auto';
-            
-            // Font loading
-            const fontFace = new FontFace('TeachingPrintDotted', 'url(TeachingPrintDottedLined-Ea6W8.otf)');
-            fontFace.load().then(function(loadedFace) {
-                document.fonts.add(loadedFace);
-                fontLoaded = true;
-                console.log('Custom font loaded successfully');
-                if (currentLetter) {
-                    drawLetter(currentLetter);
-                }
-            }).catch(function(error) {
-                console.error('Error loading font:', error);
-            });
 
-            // Functions
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
@@ -199,69 +171,25 @@
                 drawingCanvas.width = width;
                 drawingCanvas.height = height;
 
-                if (currentLetter) {
-                    drawLetter(currentLetter);
-                }
+                drawLetter(currentLetter);
+                    updateAudioFiles(currentLetter);
             }
 
             function drawLetter(letter) {
                 letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
 
-                if (!letter || letter.trim() === '') return;
-
                 const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
                 const centerX = letterCanvas.width / 2;
                 const centerY = letterCanvas.height / 2;
 
-                // Use the custom font if loaded, otherwise use fallback
-                if (fontLoaded) {
-                    letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                } else {
-                    letterCtx.font = `${fontSize}px Arial, sans-serif`;
-                }
-                
+                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
                 letterCtx.textAlign = 'center';
                 letterCtx.textBaseline = 'middle';
                 letterCtx.fillStyle = 'red';
                 letterCtx.fillText(letter, centerX, centerY);
             }
 
-            function updateAudioFiles(letter) {
-                if (!letter || letter.trim() === '') return;
-                
-                const basePath = 'https://raw.githubusercontent.com/MrH-SWES/letter-tracing-app/MrH-SWES-patch-7/';
-                nameAudio.src = `${basePath}Letter Name ${letter.toUpperCase()}.mp3`;
-                
-                let soundVariant = letter.toUpperCase();
-                if (['A', 'E', 'I', 'O', 'U'].includes(soundVariant)) {
-                    soundVariant += ' Short';
-                } else if (['C', 'F', 'H', 'K', 'M', 'N', 'Q', 'T'].includes(soundVariant)) {
-                    soundVariant += ' v1';
-                } else if (soundVariant === 'V') {
-                    soundVariant += ' v2';
-                }
-                
-                soundAudio.src = `${basePath}Letter Sound ${soundVariant}.mp3`;
-                
-                console.log('Updated audio files:');
-                console.log('Name audio:', nameAudio.src);
-                console.log('Sound audio:', soundAudio.src);
-            }
-
-            function selectLetter(letter) {
-                letterButtons.forEach(btn => btn.classList.remove('active'));
-                const activeButton = document.querySelector(`.letter-button[data-letter="${letter}"]`);
-                if (activeButton) {
-                    activeButton.classList.add('active');
-                }
-                
-                currentLetter = letter;
-                drawLetter(currentLetter);
-                updateAudioFiles(currentLetter);
-            }
-
-            // Drawing event handlers
             function startDrawing(e) {
                 e.preventDefault();
                 const x = e.touches ? e.touches[0].clientX - drawingCanvas.getBoundingClientRect().left : e.offsetX;
@@ -287,7 +215,6 @@
                 isDrawing = false;
             }
 
-            // Event listeners
             drawingCanvas.addEventListener('pointerdown', startDrawing);
             drawingCanvas.addEventListener('pointermove', draw);
             drawingCanvas.addEventListener('pointerup', stopDrawing);
@@ -296,52 +223,73 @@
             drawingCanvas.addEventListener('touchmove', draw, { passive: false });
             drawingCanvas.addEventListener('touchend', stopDrawing);
 
-            letterButtons.forEach(button => {
+            const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
+                
+                letterButtons.forEach(button => {
+                
+                
+                const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
+                const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
                 button.addEventListener('click', function() {
-                    const letter = this.getAttribute('data-letter');
-                    selectLetter(letter);
+                    letterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
+                    updateAudioFiles(currentLetter);
+                    this.classList.add('active');
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
+                    updateAudioFiles(currentLetter);
+                    letterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
                 });
-            });
-
-            playNameButton.addEventListener('click', function() {
-                if (currentLetter && nameAudio.src && nameAudio.src !== window.location.href) {
-                    console.log('Playing name audio for letter:', currentLetter);
-                    nameAudio.play().catch(error => console.error('Error playing name audio:', error));
-                } else {
-                    console.warn('No letter selected or audio source not set');
-                }
-            });
-
-            playSoundButton.addEventListener('click', function() {
-                if (currentLetter && soundAudio.src && soundAudio.src !== window.location.href) {
-                    console.log('Playing sound audio for letter:', currentLetter);
-                    soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
-                } else {
-                    console.warn('No letter selected or audio source not set');
-                }
             });
 
             window.addEventListener('resize', resizeCanvas);
-            
-            // Initialize with first letter, but wait for fonts to be ready
-            resizeCanvas();
-            
-            // Wait for fonts to be ready before initializing the first letter
-            if (document.fonts) {
-                document.fonts.ready.then(function() {
-                    console.log('All fonts are now loaded and ready');
-                    if (letterButtons.length > 0) {
-                        selectLetter('a');
-                    }
-                });
-            } else {
-                // Fallback for browsers without document.fonts
-                setTimeout(function() {
-                    if (letterButtons.length > 0) {
-                        selectLetter('a');
-                    }
-                }, 500); // Give the font a chance to load
+            function updateAudioFiles(letter) {
+                if (letter.trim() === '') return;
+                const basePath = 'https://raw.githubusercontent.com/MrH-SWES/letter-tracing-app/MrH-SWES-patch-7/'; // Adjust this if needed to match the repository path
+                nameAudio.src = `${basePath}Letter Name ${letter.toUpperCase()}.mp3`;
+                let soundVariant = letter.toUpperCase();
+                if (['A', 'E', 'I', 'O', 'U'].includes(soundVariant)) {
+                    soundVariant += ' Short';
+                } else if (['C', 'F', 'H', 'K', 'M', 'N', 'Q', 'T'].includes(soundVariant)) {
+                    soundVariant += ' v1';
+                } else if (soundVariant === 'V') {
+                    soundVariant += ' v2';
+                }
+                soundAudio.src = `${basePath}Letter Sound ${soundVariant}.mp3`;
             }
+
+            playNameButton.addEventListener('click', () => {
+                if (nameAudio.src && nameAudio.src !== window.location.href) {
+                    console.log('Playing name audio:', nameAudio.src);
+                    nameAudio.play().catch(error => console.error('Error playing name audio:', error));
+                } else {
+                    console.warn('No valid name audio source set');
+                }
+                if (nameAudio.src && nameAudio.src !== window.location.href) {
+                console.log('Play Name clicked:', nameAudio.src);
+                nameAudio.play().catch(error => console.error('Error playing name audio:', error));
+            });
+            playSoundButton.addEventListener('click', () => {
+                if (soundAudio.src && soundAudio.src !== window.location.href) {
+                    console.log('Playing sound audio:', soundAudio.src);
+                    soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
+                } else {
+                    console.warn('No valid sound audio source set');
+                }
+                if (soundAudio.src && soundAudio.src !== window.location.href) {
+                console.log('Play Sound clicked:', soundAudio.src);
+                soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
+            });
+            resizeCanvas();
+                updateAudioFiles(currentLetter);
         });
     </script>
 </body>
