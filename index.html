@@ -2,81 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Letter Tracing Practice</title>
     <style>
-        /* Font embedding - using the exact font file you provided */
         @font-face {
             font-family: 'TeachingPrintDotted';
-            src: url('./TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
+            src: url('TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
-            font-display: swap; /* Ensures text remains visible during font loading */
+            font-display: block;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
             background-color: #f5f5f5;
             touch-action: none;
-            padding: 20px;
-            box-sizing: border-box;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        .container {
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        /* Left panel with controls */
+        .controls-panel {
+            width: 25%;
+            min-width: 200px;
+            height: 100%;
+            background-color: #f0f0f0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 10;
         }
         
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
         }
         
         select {
-            padding: 8px 12px;
-            font-size: 18px;
+            width: 100%;
+            padding: 12px;
+            font-size: 24px;
             border-radius: 5px;
             border: 2px solid #ddd;
+            margin-bottom: 15px;
         }
         
         button {
-            padding: 8px 16px;
-            font-size: 16px;
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 10px;
         }
         
         button:hover {
             background-color: #3e8e41;
         }
         
-        .canvas-container {
+        /* Right panel with the tracing area */
+        .tracing-panel {
+            flex: 1;
+            height: 100%;
             position: relative;
-            border: 2px solid #ddd;
             background-color: white;
-            border-radius: 10px;
+        }
+        
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 500px;
-            height: 500px;
-            max-height: 70vh;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            height: 100%;
             touch-action: none;
         }
         
@@ -103,112 +128,137 @@
             z-index: 3; /* Top layer - user drawing */
         }
         
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            text-align: center;
+        /* Font preload */
+        .font-preload {
+            font-family: 'TeachingPrintDotted';
+            position: absolute;
+            visibility: hidden;
+            height: 0;
         }
         
-        .font-loading {
-            display: none; /* Hide by default */
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            max-width: 500px;
-            text-align: center;
-        }
-        
-        .sensitivity-control {
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        /* Add responsive adjustments */
-        @media (max-width: 600px) {
-            .canvas-container {
-                height: 350px;
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
             }
             
-            .controls, .sensitivity-control {
-                flex-direction: column;
-                align-items: stretch;
+            .controls-panel {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                padding: 10px;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: wrap;
             }
             
             h1 {
+                width: 100%;
+                margin-bottom: 10px;
                 font-size: 24px;
+            }
+            
+            .control-group {
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+            
+            label {
+                margin-bottom: 0;
+                margin-right: 10px;
+                font-size: 16px;
+            }
+            
+            select {
+                width: auto;
+                padding: 8px;
+                font-size: 16px;
+                margin-bottom: 0;
+            }
+            
+            button {
+                width: auto;
+                padding: 8px 15px;
+                font-size: 16px;
+                margin-bottom: 0;
+            }
+            
+            .tracing-panel {
+                height: calc(100% - 100px);
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Letter Tracing Practice</h1>
-        
-        <div class="font-loading" id="fontMessage">
-            The Teaching Print Dotted font is loading. If this message remains, please check your internet connection.
+    <!-- Font preload element -->
+    <div class="font-preload">Preload Teaching Print Dotted Font</div>
+    
+    <div class="app-container">
+        <!-- Left panel with controls -->
+        <div class="controls-panel">
+            <h1>Letter Tracing Practice</h1>
+            
+            <div class="control-group">
+                <label for="letterSelect">Choose a letter:</label>
+                <select id="letterSelect">
+                    <option value="a">a</option>
+                    <option value="b">b</option>
+                    <option value="c">c</option>
+                    <option value="d">d</option>
+                    <option value="e">e</option>
+                    <option value="f">f</option>
+                    <option value="g">g</option>
+                    <option value="h">h</option>
+                    <option value="i">i</option>
+                    <option value="j">j</option>
+                    <option value="k">k</option>
+                    <option value="l">l</option>
+                    <option value="m">m</option>
+                    <option value="n">n</option>
+                    <option value="o">o</option>
+                    <option value="p">p</option>
+                    <option value="q">q</option>
+                    <option value="r">r</option>
+                    <option value="s">s</option>
+                    <option value="t">t</option>
+                    <option value="u">u</option>
+                    <option value="v">v</option>
+                    <option value="w">w</option>
+                    <option value="x">x</option>
+                    <option value="y">y</option>
+                    <option value="z">z</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button id="clearButton">Clear</button>
+            </div>
         </div>
         
-        <div class="controls">
-            <label for="letterSelect">Choose a letter:</label>
-            <select id="letterSelect">
-                <option value="a">a</option>
-                <option value="b">b</option>
-                <option value="c">c</option>
-                <option value="d">d</option>
-                <option value="e">e</option>
-                <option value="f">f</option>
-                <option value="g">g</option>
-                <option value="h">h</option>
-                <option value="i">i</option>
-                <option value="j">j</option>
-                <option value="k">k</option>
-                <option value="l">l</option>
-                <option value="m">m</option>
-                <option value="n">n</option>
-                <option value="o">o</option>
-                <option value="p">p</option>
-                <option value="q">q</option>
-                <option value="r">r</option>
-                <option value="s">s</option>
-                <option value="t">t</option>
-                <option value="u">u</option>
-                <option value="v">v</option>
-                <option value="w">w</option>
-                <option value="x">x</option>
-                <option value="y">y</option>
-                <option value="z">z</option>
-            </select>
-            <button id="clearButton">Clear</button>
-        </div>
-        
-        <div class="canvas-container">
-            <canvas id="letterCanvas"></canvas>
-            <canvas id="detectionCanvas"></canvas>
-            <canvas id="drawingCanvas"></canvas>
-        </div>
-        
-        <div class="sensitivity-control">
-            <label for="sensitivitySlider">Tracing Sensitivity:</label>
-            <input type="range" id="sensitivitySlider" min="1" max="20" value="8">
+        <!-- Right panel with the tracing area -->
+        <div class="tracing-panel">
+            <div class="canvas-container">
+                <canvas id="letterCanvas"></canvas>
+                <canvas id="detectionCanvas"></canvas>
+                <canvas id="drawingCanvas"></canvas>
+            </div>
         </div>
     </div>
 
     <script>
+        // Prevent default touch behavior to stop unwanted scrolling
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
         document.addEventListener('DOMContentLoaded', function() {
             const letterCanvas = document.getElementById('letterCanvas');
             const detectionCanvas = document.getElementById('detectionCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
             const letterSelect = document.getElementById('letterSelect');
             const clearButton = document.getElementById('clearButton');
-            const fontMessage = document.getElementById('fontMessage');
-            const sensitivitySlider = document.getElementById('sensitivitySlider');
             
             const letterCtx = letterCanvas.getContext('2d');
             const detectionCtx = detectionCanvas.getContext('2d');
@@ -217,18 +267,6 @@
             let isDrawing = false;
             let lastX = 0;
             let lastY = 0;
-            let sensitivity = parseInt(sensitivitySlider.value);
-            let fontLoaded = false;
-            
-            // Font loading detection
-            document.fonts.ready.then(function() {
-                // Hide the font message regardless - we'll use the font if available
-                fontMessage.style.display = 'none';
-                fontLoaded = true;
-                
-                // Initial letter drawing
-                drawLetter(letterSelect.value);
-            });
             
             // Set canvas size based on container
             function resizeCanvas() {
@@ -256,35 +294,57 @@
                 // Clear the canvas
                 letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
                 detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
                 
                 const centerX = letterCanvas.width / 2;
                 const centerY = letterCanvas.height / 2;
                 
-                // Set the font properties for the letter
-                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.7;
+                // Make the font as large as possible while keeping it centered
+                // Aim for about 6 inches (roughly 70-80% of available height)
+                let fontSize;
                 
-                // Try to use the TeachingPrintDotted font, fallback to normal fonts
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                letterCtx.textAlign = 'center';
-                letterCtx.textBaseline = 'middle';
-                letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, centerX, centerY);
+                // Different size calculation for mobile vs desktop
+                if (window.innerWidth <= 768) {
+                    fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.8;
+                } else {
+                    fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.8;
+                }
                 
-                // Create detection area
-                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                detectionCtx.textAlign = 'center';
-                detectionCtx.textBaseline = 'middle';
+                // Make sure font is loaded before drawing
+                const fontCheck = setInterval(function() {
+                    try {
+                        letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                        letterCtx.textAlign = 'center';
+                        letterCtx.textBaseline = 'middle';
+                        letterCtx.fillStyle = '#888';
+                        letterCtx.fillText(letter, centerX, centerY);
+                        
+                        // Font is drawn, now create the detection layer
+                        setupDetectionLayer(letter, fontSize, centerX, centerY);
+                        
+                        clearInterval(fontCheck);
+                    } catch (e) {
+                        console.log("Font not loaded yet, retrying...");
+                    }
+                }, 100);
                 
-                // Create a thicker detection area based on sensitivity
-                const pixelSize = sensitivity / 4; // Adjust this ratio as needed
-                
-                // Draw several versions of the letter with offsets for a thicker detection area
-                detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
-                
-                // Create detection area with multiple offset copies for better tracing
-                for (let offsetX = -pixelSize; offsetX <= pixelSize; offsetX += pixelSize / 2) {
-                    for (let offsetY = -pixelSize; offsetY <= pixelSize; offsetY += pixelSize / 2) {
-                        detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
+                // This was moved to a separate function for better font loading
+                function setupDetectionLayer(letter, fontSize, centerX, centerY) {
+                    // Draw a solid version in the detection canvas (for hit detection)
+                    // Use a thicker version for easier tracing
+                    detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                    detectionCtx.textAlign = 'center';
+                    detectionCtx.textBaseline = 'middle';
+                    
+                    // Create a wide detection area with higher sensitivity
+                    detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
+                    
+                    // Draw multiple overlapping copies to create a thicker detection area
+                    const offset = 25; // High sensitivity - wide margin of error
+                    for (let offsetX = -offset; offsetX <= offset; offsetX += 5) {
+                        for (let offsetY = -offset; offsetY <= offset; offsetY += 5) {
+                            detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
+                        }
                     }
                 }
             }
@@ -298,6 +358,25 @@
                 return pixel[3] > 0;
             }
             
+            // Generate points close to current position but on the letter
+            function findClosestPointOnLetter(x, y, radius = 25) {
+                // Check in a pattern outward from the current point
+                for (let r = 1; r <= radius; r += 2) {
+                    for (let angle = 0; angle < 360; angle += 10) {
+                        const radians = angle * Math.PI / 180;
+                        const checkX = x + r * Math.cos(radians);
+                        const checkY = y + r * Math.sin(radians);
+                        
+                        if (isPointOnLetter(checkX, checkY)) {
+                            return { x: checkX, y: checkY };
+                        }
+                    }
+                }
+                
+                // If no point was found, return null
+                return null;
+            }
+            
             // Drawing functions
             function startDrawing(e) {
                 isDrawing = true;
@@ -306,6 +385,13 @@
                 // Check if the starting point is on the letter outline
                 if (isPointOnLetter(lastX, lastY)) {
                     drawDot(lastX, lastY);
+                } else {
+                    // Try to find a close point on the letter
+                    const closestPoint = findClosestPointOnLetter(lastX, lastY);
+                    if (closestPoint) {
+                        drawDot(closestPoint.x, closestPoint.y);
+                        [lastX, lastY] = [closestPoint.x, closestPoint.y];
+                    }
                 }
             }
             
@@ -316,12 +402,18 @@
                 
                 const [currentX, currentY] = getCoordinates(e);
                 
-                // Check if the current point is on the letter outline
+                // Check if current point is on letter
                 if (isPointOnLetter(currentX, currentY)) {
                     drawLine(lastX, lastY, currentX, currentY);
+                    [lastX, lastY] = [currentX, currentY];
+                } else {
+                    // Find closest point on letter
+                    const closestPoint = findClosestPointOnLetter(currentX, currentY);
+                    if (closestPoint) {
+                        drawLine(lastX, lastY, closestPoint.x, closestPoint.y);
+                        [lastX, lastY] = [closestPoint.x, closestPoint.y];
+                    }
                 }
-                
-                [lastX, lastY] = [currentX, currentY];
             }
             
             function stopDrawing() {
@@ -331,7 +423,7 @@
             // Draw a dot at a specific point (for the start of drawing)
             function drawDot(x, y) {
                 drawCtx.beginPath();
-                drawCtx.arc(x, y, 3, 0, Math.PI * 2);
+                drawCtx.arc(x, y, 4, 0, Math.PI * 2);
                 drawCtx.fillStyle = 'black';
                 drawCtx.fill();
             }
@@ -342,7 +434,7 @@
                 drawCtx.moveTo(fromX, fromY);
                 drawCtx.lineTo(toX, toY);
                 drawCtx.strokeStyle = 'black';
-                drawCtx.lineWidth = 6;
+                drawCtx.lineWidth = 8; // Thicker line
                 drawCtx.lineCap = 'round';
                 drawCtx.lineJoin = 'round';
                 drawCtx.stroke();
@@ -372,29 +464,34 @@
             document.addEventListener('mouseup', stopDrawing);
             
             // Event listeners for touch devices
-            drawingCanvas.addEventListener('touchstart', startDrawing);
-            drawingCanvas.addEventListener('touchmove', draw);
-            document.addEventListener('touchend', stopDrawing);
+            drawingCanvas.addEventListener('touchstart', function(e) {
+                e.preventDefault(); // Prevent scrolling
+                startDrawing(e);
+            });
+            
+            drawingCanvas.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // Prevent scrolling
+                draw(e);
+            });
+            
+            drawingCanvas.addEventListener('touchend', function(e) {
+                e.preventDefault(); // Prevent scrolling
+                stopDrawing();
+            });
             
             // Letter selection change
             letterSelect.addEventListener('change', function() {
                 drawLetter(this.value);
-                clearDrawing();
+                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             });
             
             // Clear button
-            clearButton.addEventListener('click', clearDrawing);
-            
-            // Sensitivity slider
-            sensitivitySlider.addEventListener('input', function() {
-                sensitivity = parseInt(this.value);
-                // Redraw the letter to update the detection area
-                drawLetter(letterSelect.value);
+            clearButton.addEventListener('click', function() {
+                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             });
             
-            function clearDrawing() {
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            }
+            // Initialize with the first letter
+            drawLetter(letterSelect.value);
         });
     </script>
 </body>
