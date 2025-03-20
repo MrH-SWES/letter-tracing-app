@@ -173,6 +173,7 @@
 
                 drawLetter(currentLetter);
                     updateAudioFiles(currentLetter);
+                    updateAudioFiles(currentLetter);
             }
 
             function drawLetter(letter) {
@@ -224,6 +225,8 @@
             drawingCanvas.addEventListener('touchend', stopDrawing);
 
             letterButtons.forEach(button => {
+                const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
                 button.addEventListener('click', function() {
                     letterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
@@ -248,11 +251,11 @@
                 soundAudio.src = `${basePath}Letter Sound ${soundVariant}.mp3`;
             }
 
-            document.getElementById('playNameButton').addEventListener('click', () => {
+            playNameButton.addEventListener('click', () => {
                 console.log('Play Name clicked:', nameAudio.src);
                 nameAudio.play().catch(error => console.error('Error playing name audio:', error));
             });
-            document.getElementById('playSoundButton').addEventListener('click', () => {
+            playSoundButton.addEventListener('click', () => {
                 console.log('Play Sound clicked:', soundAudio.src);
                 soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
             });
