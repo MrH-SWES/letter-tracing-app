@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Letter Tracing Practice</title>
   <style>
     @font-face {
@@ -13,13 +13,13 @@
       font-style: normal;
       font-display: block;
     }
-    
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    
+
     body {
       font-family: Arial, sans-serif;
       background-color: #f5f5f5;
@@ -27,8 +27,8 @@
       height: 100vh;
       overflow: hidden;
     }
-    
-    /* The main container: by default (portrait) we use column-reverse,
+
+    /* Main container: by default (portrait) we use column-reverse 
        so the tracing panel is on top and controls at the bottom */
     .app-container {
       display: flex;
@@ -37,110 +37,101 @@
       width: 100vw;
       transition: flex-direction 0.3s ease;
     }
-    
-    /* Landscape orientation */
+
+    /* Landscape orientation: tracing panel on right, controls on left */
     @media (orientation: landscape) {
       .app-container {
-        flex-direction: row; /* controls on left, tracing on right */
+        flex-direction: row;
       }
-      
       .controls-panel {
         width: 25%;
         min-width: 250px;
         height: 100%;
-        /* In landscape we want the controls panel above the canvas if they overlap */
+        /* Ensure controls appear above tracing if needed */
         z-index: 10;
       }
-      
       .letter-grid {
         grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
         margin-bottom: 20px;
+        height: auto; /* let it size naturally */
       }
-      
       .audio-buttons {
         display: block;
         margin-top: 10px;
       }
-      
       .audio-buttons button {
         width: 100%;
         margin-top: 10px;
         min-height: 60px;
       }
     }
-    
-    /* Portrait orientation styles */
+
+    /* Portrait orientation: use a side-by-side layout for controls */
     @media (orientation: portrait) {
       .controls-panel {
         width: 100%;
-        height: auto;
+        /* Remove a fixed max-height so the controls panel expands
+           just enough for its content */
         min-height: 180px;
-        max-height: 40vh;
-        /* Remove z-index so it does not cover the tracing panel */
-        z-index: auto;
+        /* Let the controls panel size naturally; it sits at the bottom */
+        height: auto;
       }
-      
-      /* Wrap the letter grid and audio buttons side by side */
+      /* Wrap the two control groups (letter grid and audio buttons)
+         in a flex container so they appear side by side */
       .control-group-container {
         display: flex;
         flex-direction: row;
         gap: 10px;
-        align-items: flex-start;
       }
-      
-      /* Let each control group share the available space */
-      .control-group {
+      /* Give the letter grid group more space */
+      .control-group.letter-group {
+        flex: 2;
+      }
+      /* The audio buttons group gets a smaller share */
+      .control-group.audio-buttons {
         flex: 1;
-      }
-      
-      /* Audio buttons styling in portrait */
-      .audio-buttons {
-        margin-top: 0;
         display: flex;
         flex-direction: column;
         gap: 10px;
       }
-      
-      /* Adjust the letter grid: fewer columns so it fits beside the buttons.
-         We also set position relative and a z-index if overlapping occurs. */
+      /* Adjust the letter grid so it shows all rows.
+         With 26 letters and 9 columns per row, you get 3 rows.
+         We set a fixed height to accommodate them. */
       .letter-grid {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(9, 1fr);
         gap: 8px;
         margin-bottom: 10px;
-        position: relative;
-        z-index: 2;
+        height: 130px;  /* about 3 rows at 35px per cell plus gaps */
+        overflow: hidden;
       }
-      
       .letter-button {
         width: 35px;
         height: 35px;
       }
-      
       .title {
         margin-bottom: 5px;
         font-size: 24px;
       }
     }
-    
-    /* Controls panel common styling */
+
+    /* Common styles for controls panel */
     .controls-panel {
-      position: relative; /* needed for internal stacking */
+      position: relative;
       background-color: #f0f0f0;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-      /* In landscape, we want a higher z-index; in portrait it’s overridden above */
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
       z-index: 10;
       overflow-y: auto;
       transition: width 0.3s ease, height 0.3s ease;
     }
-    
+
     .letter-grid {
       display: grid;
       gap: 10px;
     }
-    
+
     .letter-button {
       display: flex;
       align-items: center;
@@ -153,26 +144,22 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
     .letter-button:hover {
       background-color: #d4edd5;
     }
-    
     .letter-button.active {
       background-color: #4CAF50;
       color: white;
     }
-    
-    /* Tracing panel: it should take up the remaining space.
-       Adding min-height: 0 helps it shrink properly within flex. */
+
+    /* Tracing panel: occupies remaining space */
     .tracing-panel {
       flex: 1;
-      min-height: 0;
+      min-height: 0; /* Allows proper shrinking in flex layout */
       position: relative;
       background-color: white;
       transition: height 0.3s ease;
     }
-    
     .canvas-container {
       position: absolute;
       top: 0;
@@ -183,7 +170,6 @@
       background-color: white;
       border: 2px solid #eee;
     }
-    
     canvas {
       position: absolute;
       top: 0;
@@ -192,11 +178,14 @@
       height: 100%;
       touch-action: none;
     }
-    
+
     .control-group {
       margin-bottom: 10px;
     }
-    
+    .control-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
     .control-group button {
       padding: 15px;
       font-size: 20px;
@@ -208,11 +197,9 @@
       cursor: pointer;
       width: 100%;
     }
-    
     .control-group button:hover {
       background-color: darkblue;
     }
-    
     .title {
       margin-bottom: 15px;
     }
@@ -223,16 +210,16 @@
     <!-- Controls Panel -->
     <div class="controls-panel">
       <h1 class="title">Letter Tracing Practice</h1>
-      <!-- Container wrapping letter grid and audio buttons side by side in portrait -->
+      <!-- Wrap the letter grid and audio buttons in a flex container -->
       <div class="control-group-container">
-        <div class="control-group">
+        <div class="control-group letter-group">
           <label>Choose a letter:</label>
           <div class="letter-grid">
             <script>
               const letters = "abcdefghijklmnopqrstuvwxyz".split("");
               document.write(
                 letters
-                  .map(letter => `<div class='letter-button' data-letter='${letter}'>${letter}</div>`)
+                  .map(letter => `<div class="letter-button" data-letter="${letter}">${letter}</div>`)
                   .join("")
               );
             </script>
@@ -254,99 +241,90 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener("DOMContentLoaded", function() {
       // Canvas setup
-      const letterCanvas = document.getElementById('letterCanvas');
-      const drawingCanvas = document.getElementById('drawingCanvas');
-      const letterCtx = letterCanvas.getContext('2d');
-      const drawCtx = drawingCanvas.getContext('2d');
+      const letterCanvas = document.getElementById("letterCanvas");
+      const drawingCanvas = document.getElementById("drawingCanvas");
+      const letterCtx = letterCanvas.getContext("2d");
+      const drawCtx = drawingCanvas.getContext("2d");
 
       // UI elements
-      const letterButtons = document.querySelectorAll('.letter-button');
-      const playNameButton = document.getElementById('playNameButton');
-      const playSoundButton = document.getElementById('playSoundButton');
+      const letterButtons = document.querySelectorAll(".letter-button");
+      const playNameButton = document.getElementById("playNameButton");
+      const playSoundButton = document.getElementById("playSoundButton");
 
       // State variables
-      let currentLetter = '';
+      let currentLetter = "";
       let isDrawing = false;
       let fontLoaded = false;
 
       // Audio setup
       const nameAudio = new Audio();
-      nameAudio.preload = 'auto';
+      nameAudio.preload = "auto";
       const soundAudio = new Audio();
-      soundAudio.preload = 'auto';
+      soundAudio.preload = "auto";
 
       // Font loading
-      const fontFace = new FontFace('TeachingPrintDotted', 'url(TeachingPrintDottedLined-Ea6W8.otf)');
+      const fontFace = new FontFace("TeachingPrintDotted", "url(TeachingPrintDottedLined-Ea6W8.otf)");
       fontFace.load().then(function(loadedFace) {
         document.fonts.add(loadedFace);
         fontLoaded = true;
-        console.log('Custom font loaded successfully');
-        if (currentLetter) {
-          drawLetter(currentLetter);
-        }
+        console.log("Custom font loaded successfully");
+        if (currentLetter) drawLetter(currentLetter);
       }).catch(function(error) {
-        console.error('Error loading font:', error);
+        console.error("Error loading font:", error);
       });
 
       // Resize canvases to fit their container
       function resizeCanvas() {
-        const container = document.querySelector('.canvas-container');
+        const container = document.querySelector(".canvas-container");
         const width = container.clientWidth;
         const height = container.clientHeight;
         letterCanvas.width = width;
         letterCanvas.height = height;
         drawingCanvas.width = width;
         drawingCanvas.height = height;
-        if (currentLetter) {
-          drawLetter(currentLetter);
-        }
+        if (currentLetter) drawLetter(currentLetter);
       }
 
       function drawLetter(letter) {
         letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
         drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        if (!letter || letter.trim() === '') return;
+        if (!letter || letter.trim() === "") return;
         const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
         const centerX = letterCanvas.width / 2;
         const centerY = letterCanvas.height / 2;
-        // Use the custom font if loaded; otherwise fallback
-        if (fontLoaded) {
-          letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-        } else {
-          letterCtx.font = `${fontSize}px Arial, sans-serif`;
-        }
-        letterCtx.textAlign = 'center';
-        letterCtx.textBaseline = 'middle';
-        letterCtx.fillStyle = 'red';
+        // Use custom font if loaded; otherwise fallback
+        letterCtx.font = fontLoaded ? `${fontSize}px TeachingPrintDotted, Arial, sans-serif`
+                                   : `${fontSize}px Arial, sans-serif`;
+        letterCtx.textAlign = "center";
+        letterCtx.textBaseline = "middle";
+        letterCtx.fillStyle = "red";
         letterCtx.fillText(letter, centerX, centerY);
       }
 
       function updateAudioFiles(letter) {
-        if (!letter || letter.trim() === '') return;
-        const basePath = 'https://raw.githubusercontent.com/MrH-SWES/letter-tracing-app/MrH-SWES-patch-7/';
+        if (!letter || letter.trim() === "") return;
+        const basePath = "https://raw.githubusercontent.com/MrH-SWES/letter-tracing-app/MrH-SWES-patch-7/";
         nameAudio.src = `${basePath}Letter Name ${letter.toUpperCase()}.mp3`;
         let soundVariant = letter.toUpperCase();
-        if (['A', 'E', 'I', 'O', 'U'].includes(soundVariant)) {
-          soundVariant += ' Short';
-        } else if (['C', 'F', 'H', 'K', 'M', 'N', 'Q', 'T'].includes(soundVariant)) {
-          soundVariant += ' v1';
-        } else if (soundVariant === 'V') {
-          soundVariant += ' v2';
+        if (["A", "E", "I", "O", "U"].includes(soundVariant)) {
+          soundVariant += " Short";
+        } else if (["C", "F", "H", "K", "M", "N", "Q", "T"].includes(soundVariant)) {
+          soundVariant += " v1";
+        } else if (soundVariant === "V") {
+          soundVariant += " v2";
         }
         soundAudio.src = `${basePath}Letter Sound ${soundVariant}.mp3`;
-        console.log('Updated audio files:');
-        console.log('Name audio:', nameAudio.src);
-        console.log('Sound audio:', soundAudio.src);
+        console.log("Updated audio files:");
+        console.log("Name audio:", nameAudio.src);
+        console.log("Sound audio:", soundAudio.src);
       }
 
       function selectLetter(letter) {
-        letterButtons.forEach(btn => btn.classList.remove('active'));
+        letterButtons.forEach(btn => btn.classList.remove("active"));
         const activeButton = document.querySelector(`.letter-button[data-letter="${letter}"]`);
-        if (activeButton) {
-          activeButton.classList.add('active');
-        }
+        if (activeButton) activeButton.classList.add("active");
         currentLetter = letter;
         drawLetter(currentLetter);
         updateAudioFiles(currentLetter);
@@ -370,9 +348,9 @@
         const x = e.touches ? e.touches[0].clientX - rect.left : e.offsetX;
         const y = e.touches ? e.touches[0].clientY - rect.top : e.offsetY;
         drawCtx.lineTo(x, y);
-        drawCtx.strokeStyle = 'black';
+        drawCtx.strokeStyle = "black";
         drawCtx.lineWidth = 20;
-        drawCtx.lineCap = 'round';
+        drawCtx.lineCap = "round";
         drawCtx.stroke();
       }
 
@@ -381,39 +359,58 @@
       }
 
       // Event listeners for drawing on the canvas
-      drawingCanvas.addEventListener('pointerdown', startDrawing);
-      drawingCanvas.addEventListener('pointermove', draw);
-      drawingCanvas.addEventListener('pointerup', stopDrawing);
-      drawingCanvas.addEventListener('pointerout', stopDrawing);
-      drawingCanvas.addEventListener('touchstart', startDrawing, { passive: false });
-      drawingCanvas.addEventListener('touchmove', draw, { passive: false });
-      drawingCanvas.addEventListener('touchend', stopDrawing);
+      drawingCanvas.addEventListener("pointerdown", startDrawing);
+      drawingCanvas.addEventListener("pointermove", draw);
+      drawingCanvas.addEventListener("pointerup", stopDrawing);
+      drawingCanvas.addEventListener("pointerout", stopDrawing);
+      drawingCanvas.addEventListener("touchstart", startDrawing, { passive: false });
+      drawingCanvas.addEventListener("touchmove", draw, { passive: false });
+      drawingCanvas.addEventListener("touchend", stopDrawing);
 
       letterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-          const letter = this.getAttribute('data-letter');
+        button.addEventListener("click", function() {
+          const letter = this.getAttribute("data-letter");
           selectLetter(letter);
         });
       });
 
-      playNameButton.addEventListener('click', function() {
+      playNameButton.addEventListener("click", function() {
         if (currentLetter && nameAudio.src && nameAudio.src !== window.location.href) {
-          console.log('Playing name audio for letter:', currentLetter);
-          nameAudio.play().catch(error => console.error('Error playing name audio:', error));
+          console.log("Playing name audio for letter:", currentLetter);
+          nameAudio.play().catch(error => console.error("Error playing name audio:", error));
         } else {
-          console.warn('No letter selected or audio source not set');
+          console.warn("No letter selected or audio source not set");
         }
       });
 
-      playSoundButton.addEventListener('click', function() {
+      playSoundButton.addEventListener("click", function() {
         if (currentLetter && soundAudio.src && soundAudio.src !== window.location.href) {
-          console.log('Playing sound audio for letter:', currentLetter);
-          soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
+          console.log("Playing sound audio for letter:", currentLetter);
+          soundAudio.play().catch(error => console.error("Error playing sound audio:", error));
         } else {
-          console.warn('No letter selected or audio source not set');
+          console.warn("No letter selected or audio source not set");
         }
       });
 
       // Handle window resize and orientation change
-      window.addEventListener('resize', resizeCanvas);
-      window.addEventListener('o
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("orientationchange", function() {
+        setTimeout(resizeCanvas, 100);
+      });
+
+      // Initialize canvases and select the first letter
+      resizeCanvas();
+      if (document.fonts) {
+        document.fonts.ready.then(function() {
+          console.log("All fonts loaded and ready");
+          if (letterButtons.length > 0) selectLetter("a");
+        });
+      } else {
+        setTimeout(function() {
+          if (letterButtons.length > 0) selectLetter("a");
+        }, 500);
+      }
+    });
+  </script>
+</body>
+</html>
