@@ -1,4 +1,62 @@
-<!DOCTYPE html>
+/* Letter selection grid styles */
+        .letter-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .letter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .vowels {
+            margin: 10px 0;
+        }
+        
+        .vowels .letter-button {
+            background-color: #ffebcd;
+            border-color: #ffcd9e;
+        }
+        
+        .letter-button {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #e9f5e9;
+            border: 2px solid #c8e6c9;
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        
+        .letter-button:hover {
+            background-color: #d4edd5;
+            transform: scale(1.05);
+        }
+        
+        .letter-button.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #3e8e41;
+        }
+        
+        /* Make vowels stand out */
+        .vowels .letter-button:hover {
+            background-color: #ffe0b2;
+        }
+        
+        .vowels .letter-button.active {
+            background-color: #ff9800;
+            border-color: #f57c00;
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -36,7 +94,7 @@
         /* Left panel with controls */
         .controls-panel {
             width: 25%;
-            min-width: 200px;
+            min-width: 250px;
             height: 100%;
             background-color: #f0f0f0;
             padding: 20px;
@@ -44,6 +102,7 @@
             flex-direction: column;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             z-index: 10;
+            overflow-y: auto;
         }
         
         h1 {
@@ -147,9 +206,8 @@
                 min-width: 100%;
                 height: auto;
                 padding: 10px;
-                flex-direction: row;
-                align-items: center;
-                flex-wrap: wrap;
+                overflow-y: auto;
+                max-height: 40vh;
             }
             
             h1 {
@@ -160,33 +218,28 @@
             
             .control-group {
                 margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                margin-right: 10px;
             }
             
-            label {
-                margin-bottom: 0;
-                margin-right: 10px;
-                font-size: 16px;
-            }
-            
-            select {
-                width: auto;
-                padding: 8px;
-                font-size: 16px;
-                margin-bottom: 0;
+            .letter-button {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
             }
             
             button {
-                width: auto;
-                padding: 8px 15px;
-                font-size: 16px;
-                margin-bottom: 0;
+                padding: 10px;
             }
             
             .tracing-panel {
-                height: calc(100% - 100px);
+                height: 60vh;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .letter-button {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
             }
         }
     </style>
@@ -201,35 +254,46 @@
             <h1>Letter Tracing Practice</h1>
             
             <div class="control-group">
-                <label for="letterSelect">Choose a letter:</label>
-                <select id="letterSelect">
-                    <option value="a">a</option>
-                    <option value="b">b</option>
-                    <option value="c">c</option>
-                    <option value="d">d</option>
-                    <option value="e">e</option>
-                    <option value="f">f</option>
-                    <option value="g">g</option>
-                    <option value="h">h</option>
-                    <option value="i">i</option>
-                    <option value="j">j</option>
-                    <option value="k">k</option>
-                    <option value="l">l</option>
-                    <option value="m">m</option>
-                    <option value="n">n</option>
-                    <option value="o">o</option>
-                    <option value="p">p</option>
-                    <option value="q">q</option>
-                    <option value="r">r</option>
-                    <option value="s">s</option>
-                    <option value="t">t</option>
-                    <option value="u">u</option>
-                    <option value="v">v</option>
-                    <option value="w">w</option>
-                    <option value="x">x</option>
-                    <option value="y">y</option>
-                    <option value="z">z</option>
-                </select>
+                <label>Choose a letter:</label>
+                
+                <div class="letter-grid">
+                    <!-- Common consonants -->
+                    <div class="letter-group">
+                        <div class="letter-button" data-letter="t">t</div>
+                        <div class="letter-button" data-letter="n">n</div>
+                        <div class="letter-button" data-letter="r">r</div>
+                        <div class="letter-button" data-letter="m">m</div>
+                        <div class="letter-button" data-letter="d">d</div>
+                        <div class="letter-button" data-letter="s">s</div>
+                        <div class="letter-button" data-letter="l">l</div>
+                        <div class="letter-button" data-letter="c">c</div>
+                        <div class="letter-button" data-letter="p">p</div>
+                        <div class="letter-button" data-letter="b">b</div>
+                        <div class="letter-button" data-letter="f">f</div>
+                    </div>
+                    
+                    <!-- Vowels -->
+                    <div class="letter-group vowels">
+                        <div class="letter-button" data-letter="v">v</div>
+                        <div class="letter-button" data-letter="a">a</div>
+                        <div class="letter-button" data-letter="e">e</div>
+                        <div class="letter-button" data-letter="i">i</div>
+                        <div class="letter-button" data-letter="o">o</div>
+                        <div class="letter-button" data-letter="u">u</div>
+                    </div>
+                    
+                    <!-- Less common consonants -->
+                    <div class="letter-group">
+                        <div class="letter-button" data-letter="g">g</div>
+                        <div class="letter-button" data-letter="h">h</div>
+                        <div class="letter-button" data-letter="k">k</div>
+                        <div class="letter-button" data-letter="q">q</div>
+                        <div class="letter-button" data-letter="w">w</div>
+                        <div class="letter-button" data-letter="x">x</div>
+                        <div class="letter-button" data-letter="y">y</div>
+                        <div class="letter-button" data-letter="z">z</div>
+                    </div>
+                </div>
             </div>
             
             <div class="control-group">
@@ -479,10 +543,26 @@
                 stopDrawing();
             });
             
-            // Letter selection change
-            letterSelect.addEventListener('change', function() {
-                drawLetter(this.value);
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            // Letter buttons functionality
+            const letterButtons = document.querySelectorAll('.letter-button');
+            let currentLetter = 'a'; // Default letter
+            
+            // Set the initial active button
+            document.querySelector('[data-letter="a"]').classList.add('active');
+            
+            letterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    letterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Get the letter and update
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
+                    drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                });
             });
             
             // Clear button
@@ -490,8 +570,8 @@
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             });
             
-            // Initialize with the first letter
-            drawLetter(letterSelect.value);
+            // Initialize with the first letter ('t')
+            drawLetter('a');
         });
     </script>
 </body>
