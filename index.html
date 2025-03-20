@@ -136,7 +136,81 @@
             const drawCtx = drawingCanvas.getContext('2d');
             const letterButtons = document.querySelectorAll('.letter-button');
             let currentLetter = 't';
-            
+            let isDrawing = false;
+
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
+                const height = container.clientHeight;
+
+                letterCanvas.width = width;
+                letterCanvas.height = height;
+                drawingCanvas.width = width;
+                drawingCanvas.height = height;
+
+                drawLetter(currentLetter);
+            }
+
+            function drawLetter(letter) {
+                letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
+                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+
+                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
+                const centerX = letterCanvas.width / 2;
+                const centerY = letterCanvas.height / 2;
+
+                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                letterCtx.textAlign = 'center';
+                letterCtx.textBaseline = 'middle';
+                letterCtx.fillStyle = '#888';
+                letterCtx.fillText(letter, centerX, centerY);
+            }
+
+            function startDrawing(e) {
+                e.preventDefault();
+                const x = e.touches ? e.touches[0].clientX - drawingCanvas.getBoundingClientRect().left : e.offsetX;
+                const y = e.touches ? e.touches[0].clientY - drawingCanvas.getBoundingClientRect().top : e.offsetY;
+                isDrawing = true;
+                drawCtx.beginPath();
+                drawCtx.moveTo(x, y);
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const x = e.touches ? e.touches[0].clientX - drawingCanvas.getBoundingClientRect().left : e.offsetX;
+                const y = e.touches ? e.touches[0].clientY - drawingCanvas.getBoundingClientRect().top : e.offsetY;
+                drawCtx.lineTo(x, y);
+                drawCtx.strokeStyle = 'black';
+                drawCtx.lineWidth = 20;
+                drawCtx.lineCap = 'round';
+                drawCtx.stroke();
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            drawingCanvas.addEventListener('pointerdown', startDrawing);
+            drawingCanvas.addEventListener('pointermove', draw);
+            drawingCanvas.addEventListener('pointerup', stopDrawing);
+            drawingCanvas.addEventListener('pointerout', stopDrawing);
+            drawingCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+            drawingCanvas.addEventListener('touchmove', draw, { passive: false });
+            drawingCanvas.addEventListener('touchend', stopDrawing);
+
+            letterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    letterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
+                });
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+        });
+    </script>
+</body>
+</html>
