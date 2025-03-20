@@ -157,8 +157,8 @@
             const drawCtx = drawingCanvas.getContext('2d');
             const letterButtons = document.querySelectorAll('.letter-button');
             let currentLetter = ' ';
-            const nameAudio = new Audio();
-            const soundAudio = new Audio();
+            const nameAudio = new Audio(); nameAudio.preload = 'auto';
+            const soundAudio = new Audio(); soundAudio.preload = 'auto';
             let isDrawing = false;
 
             function resizeCanvas() {
@@ -172,7 +172,6 @@
                 drawingCanvas.height = height;
 
                 drawLetter(currentLetter);
-                    updateAudioFiles(currentLetter);
                     updateAudioFiles(currentLetter);
             }
 
@@ -227,7 +226,17 @@
             letterButtons.forEach(button => {
                 const playNameButton = document.getElementById('playNameButton');
                 const playSoundButton = document.getElementById('playSoundButton');
+                const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
+                const playNameButton = document.getElementById('playNameButton');
+                const playSoundButton = document.getElementById('playSoundButton');
                 button.addEventListener('click', function() {
+                    letterButtons.forEach(btn => btn.classList.remove('active'));
+                    updateAudioFiles(currentLetter);
+                    this.classList.add('active');
+                    currentLetter = this.getAttribute('data-letter');
+                    drawLetter(currentLetter);
+                    updateAudioFiles(currentLetter);
                     letterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
                     currentLetter = this.getAttribute('data-letter');
@@ -252,10 +261,12 @@
             }
 
             playNameButton.addEventListener('click', () => {
+                if (nameAudio.src && nameAudio.src !== window.location.href) {
                 console.log('Play Name clicked:', nameAudio.src);
                 nameAudio.play().catch(error => console.error('Error playing name audio:', error));
             });
             playSoundButton.addEventListener('click', () => {
+                if (soundAudio.src && soundAudio.src !== window.location.href) {
                 console.log('Play Sound clicked:', soundAudio.src);
                 soundAudio.play().catch(error => console.error('Error playing sound audio:', error));
             });
