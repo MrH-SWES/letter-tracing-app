@@ -123,7 +123,6 @@
         <div class="tracing-panel">
             <div class="canvas-container">
                 <canvas id="letterCanvas"></canvas>
-                <canvas id="detectionCanvas"></canvas>
                 <canvas id="drawingCanvas"></canvas>
             </div>
         </div>
@@ -132,81 +131,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const letterCanvas = document.getElementById('letterCanvas');
-            const detectionCanvas = document.getElementById('detectionCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
             const letterCtx = letterCanvas.getContext('2d');
-            const detectionCtx = detectionCanvas.getContext('2d');
             const drawCtx = drawingCanvas.getContext('2d');
             const letterButtons = document.querySelectorAll('.letter-button');
             let currentLetter = 't';
-            let isDrawing = false;
-            let strokeIndex = 0;
-            
-            const strokeData = {
-                't': [[{x: 50, y: 10}, {x: 50, y: 90}], [{x: 30, y: 50}, {x: 70, y: 50}]],
-                'c': [[{x: 70, y: 20}, {x: 30, y: 50}, {x: 70, y: 80}]]
-            };
             
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
-                const height = container.clientHeight;
-                
-                letterCanvas.width = width;
-                letterCanvas.height = height;
-                detectionCanvas.width = width;
-                detectionCanvas.height = height;
-                drawingCanvas.width = width;
-                drawingCanvas.height = height;
-                
-                drawLetter(currentLetter);
-            }
-            
-            function drawLetter(letter) {
-                letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                strokeIndex = 0;
-                
-                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                letterCtx.textAlign = 'center';
-                letterCtx.textBaseline = 'middle';
-                letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, letterCanvas.width / 2, letterCanvas.height / 2);
-            }
-            
-            function startDrawing(e) {
-                const {offsetX: x, offsetY: y} = e;
-                const stroke = strokeData[currentLetter]?.[strokeIndex];
-                if (!stroke) return;
-                if (Math.hypot(stroke[0].x - x, stroke[0].y - y) < 20) {
-                    isDrawing = true;
-                    drawCtx.beginPath();
-                    drawCtx.moveTo(x, y);
-                }
-            }
-            
-            function draw(e) {
-                if (!isDrawing) return;
-                const {offsetX: x, offsetY: y} = e;
-                drawCtx.lineTo(x, y);
-                drawCtx.strokeStyle = 'black';
-                drawCtx.lineWidth = 20;
-                drawCtx.lineCap = 'round';
-                drawCtx.stroke();
-            }
-            
-            function stopDrawing() {
-                isDrawing = false;
-            }
-            
-            drawingCanvas.addEventListener('pointerdown', startDrawing);
-            drawingCanvas.addEventListener('pointermove', draw);
-            drawingCanvas.addEventListener('pointerup', stopDrawing);
-            
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-        });
-    </script>
-</body>
-</html>
