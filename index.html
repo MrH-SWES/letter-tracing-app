@@ -235,7 +235,7 @@
             window.addEventListener('resize', resizeCanvas);
             function updateAudioFiles(letter) {
                 if (letter.trim() === '') return;
-                const basePath = './'; // Adjust this if needed to match the repository path
+                const basePath = 'https://raw.githubusercontent.com/MrH-SWES/letter-tracing-app/MrH-SWES-patch-7/'; // Adjust this if needed to match the repository path
                 nameAudio.src = `${basePath}Letter Name ${letter.toUpperCase()}.mp3`;
                 let soundVariant = letter.toUpperCase();
                 if (['A', 'E', 'I', 'O', 'U'].includes(soundVariant)) {
