@@ -140,90 +140,70 @@
             const letterButtons = document.querySelectorAll('.letter-button');
             let currentLetter = 't';
             let isDrawing = false;
-
+            let strokeIndex = 0;
+            
+            const strokeData = {
+                't': [[{x: 50, y: 10}, {x: 50, y: 90}], [{x: 30, y: 50}, {x: 70, y: 50}]],
+                'c': [[{x: 70, y: 20}, {x: 30, y: 50}, {x: 70, y: 80}]]
+            };
+            
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
                 const height = container.clientHeight;
-
+                
                 letterCanvas.width = width;
                 letterCanvas.height = height;
                 detectionCanvas.width = width;
                 detectionCanvas.height = height;
                 drawingCanvas.width = width;
                 drawingCanvas.height = height;
-
+                
                 drawLetter(currentLetter);
             }
-
+            
             function drawLetter(letter) {
                 letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
-                detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-
+                strokeIndex = 0;
+                
                 const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
-                const centerX = letterCanvas.width / 2;
-                const centerY = letterCanvas.height / 2;
-
                 letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
                 letterCtx.textAlign = 'center';
                 letterCtx.textBaseline = 'middle';
                 letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, centerX, centerY);
-
-                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                detectionCtx.textAlign = 'center';
-                detectionCtx.textBaseline = 'middle';
-                detectionCtx.fillStyle = 'red';
-                detectionCtx.fillText(letter, centerX, centerY);
+                letterCtx.fillText(letter, letterCanvas.width / 2, letterCanvas.height / 2);
             }
-
-            function isPointOnLetter(x, y) {
-                const pixel = detectionCtx.getImageData(x, y, 1, 1).data;
-                return pixel[3] > 0;
-            }
-
+            
             function startDrawing(e) {
-                const x = e.offsetX;
-                const y = e.offsetY;
-                if (isPointOnLetter(x, y)) {
+                const {offsetX: x, offsetY: y} = e;
+                const stroke = strokeData[currentLetter]?.[strokeIndex];
+                if (!stroke) return;
+                if (Math.hypot(stroke[0].x - x, stroke[0].y - y) < 20) {
                     isDrawing = true;
                     drawCtx.beginPath();
                     drawCtx.moveTo(x, y);
                 }
             }
-
+            
             function draw(e) {
                 if (!isDrawing) return;
-                const x = e.offsetX;
-                const y = e.offsetY;
-                if (isPointOnLetter(x, y)) {
-                    drawCtx.lineTo(x, y);
-                    drawCtx.strokeStyle = 'black';
-                    drawCtx.lineWidth = 20;
-                    drawCtx.lineCap = 'round';
-                    drawCtx.stroke();
-                }
+                const {offsetX: x, offsetY: y} = e;
+                drawCtx.lineTo(x, y);
+                drawCtx.strokeStyle = 'black';
+                drawCtx.lineWidth = 20;
+                drawCtx.lineCap = 'round';
+                drawCtx.stroke();
             }
-
+            
             function stopDrawing() {
                 isDrawing = false;
             }
-
+            
             drawingCanvas.addEventListener('pointerdown', startDrawing);
             drawingCanvas.addEventListener('pointermove', draw);
             drawingCanvas.addEventListener('pointerup', stopDrawing);
-            drawingCanvas.addEventListener('pointerout', stopDrawing);
-
-            letterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    letterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentLetter = this.getAttribute('data-letter');
-                    drawLetter(currentLetter);
-                });
-            });
-
+            
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
         });
