@@ -328,6 +328,10 @@
             let isDrawing = false;
             let lastX = 0;
             let lastY = 0;
+            let currentLetter = 't'; // Initialize with 't'
+            
+            // Set the initial active button
+            document.querySelector('[data-letter="t"]').classList.add('active');
             
             // Set canvas size based on container
             function resizeCanvas() {
@@ -344,13 +348,22 @@
                 drawingCanvas.width = width;
                 drawingCanvas.height = height;
                 
+                // Add visible borders to the canvases for debugging
+                const ctx = letterCanvas.getContext('2d');
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, width, height);
+                
                 // Redraw the current letter when resizing
                 drawLetter(currentLetter);
             }
             
-            // Initialize canvas size
+            // Initialize canvas size and draw the letter immediately
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
+            
+            // Force an immediate draw of the initial letter - this ensures it's visible right away
+            drawLetter(currentLetter);
             
             // Draw the dotted letter
             function drawLetter(letter) {
@@ -392,10 +405,14 @@
                 }, 100);
                 
                 // This was moved to a separate function for better font loading
-                function setupDetectionLayer(letter, fontSize, centerX, centerY) {
+                function setupDetectionLayer(letter, fontSize, centerX, centerY, isFallback = false) {
                     // Draw a solid version in the detection canvas (for hit detection)
-                    // Use a thicker version for easier tracing
-                    detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                    if (isFallback) {
+                        detectionCtx.font = `${fontSize}px Arial, sans-serif`;
+                    } else {
+                        detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                    }
+                    
                     detectionCtx.textAlign = 'center';
                     detectionCtx.textBaseline = 'middle';
                     
@@ -409,6 +426,11 @@
                             detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
                         }
                     }
+                    
+                    // Draw a red border around the detection canvas for debugging
+                    detectionCtx.strokeStyle = 'red';
+                    detectionCtx.lineWidth = 2;
+                    detectionCtx.strokeRect(0, 0, detectionCanvas.width, detectionCanvas.height);
                 }
             }
             
@@ -568,12 +590,6 @@
             clearButton.addEventListener('click', function() {
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             });
-            
-            // Initialize with the first letter ('t')
-            const initialLetter = 't';
-            document.querySelector(`[data-letter="${initialLetter}"]`).classList.add('active');
-            currentLetter = initialLetter;
-            drawLetter(currentLetter);
         });
     </script>
 </body>
