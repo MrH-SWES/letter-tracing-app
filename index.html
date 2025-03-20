@@ -166,6 +166,7 @@
             // State variables
             let currentLetter = '';
             let isDrawing = false;
+            let fontLoaded = false;
             
             // Audio setup
             const nameAudio = new Audio();
@@ -173,6 +174,19 @@
             
             const soundAudio = new Audio();
             soundAudio.preload = 'auto';
+            
+            // Font loading
+            const fontFace = new FontFace('TeachingPrintDotted', 'url(TeachingPrintDottedLined-Ea6W8.otf)');
+            fontFace.load().then(function(loadedFace) {
+                document.fonts.add(loadedFace);
+                fontLoaded = true;
+                console.log('Custom font loaded successfully');
+                if (currentLetter) {
+                    drawLetter(currentLetter);
+                }
+            }).catch(function(error) {
+                console.error('Error loading font:', error);
+            });
 
             // Functions
             function resizeCanvas() {
@@ -200,7 +214,13 @@
                 const centerX = letterCanvas.width / 2;
                 const centerY = letterCanvas.height / 2;
 
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                // Use the custom font if loaded, otherwise use fallback
+                if (fontLoaded) {
+                    letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                } else {
+                    letterCtx.font = `${fontSize}px Arial, sans-serif`;
+                }
+                
                 letterCtx.textAlign = 'center';
                 letterCtx.textBaseline = 'middle';
                 letterCtx.fillStyle = 'red';
@@ -303,10 +323,24 @@
 
             window.addEventListener('resize', resizeCanvas);
             
-            // Initialize with first letter
+            // Initialize with first letter, but wait for fonts to be ready
             resizeCanvas();
-            if (letterButtons.length > 0) {
-                selectLetter('a');
+            
+            // Wait for fonts to be ready before initializing the first letter
+            if (document.fonts) {
+                document.fonts.ready.then(function() {
+                    console.log('All fonts are now loaded and ready');
+                    if (letterButtons.length > 0) {
+                        selectLetter('a');
+                    }
+                });
+            } else {
+                // Fallback for browsers without document.fonts
+                setTimeout(function() {
+                    if (letterButtons.length > 0) {
+                        selectLetter('a');
+                    }
+                }, 500); // Give the font a chance to load
             }
         });
     </script>
