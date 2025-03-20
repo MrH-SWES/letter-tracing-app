@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'TeachingPrintDotted';
-            src: url(./'TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
+            src: url('TeachingPrintDottedLined-Ea6W8.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
             font-display: block;
@@ -33,7 +33,6 @@
             width: 100vw;
         }
         
-        /* Left panel with controls */
         .controls-panel {
             width: 25%;
             min-width: 250px;
@@ -46,41 +45,37 @@
             z-index: 10;
             overflow-y: auto;
         }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
+
+        .letter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 10px;
         }
-        
-        .control-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
+
+        .letter-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 20px;
             font-weight: bold;
-        }
-        
-        button {
-            width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
+            background-color: #e9f5e9;
+            border: 2px solid #c8e6c9;
             border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .letter-button:hover {
+            background-color: #d4edd5;
+        }
+
+        .letter-button.active {
+            background-color: #4CAF50;
+            color: white;
         }
         
-        button:hover {
-            background-color: #3e8e41;
-        }
-        
-        /* Right panel with the tracing area */
         .tracing-panel {
             flex: 1;
             height: 100%;
@@ -109,197 +104,22 @@
             height: 100%;
             touch-action: none;
         }
-        
-        #letterCanvas {
-            z-index: 1; /* Bottom layer - letter template */
-        }
-        
-        #detectionCanvas {
-            z-index: 2; /* Middle layer - invisible, used for detection */
-            opacity: 0; /* Make it invisible */
-            pointer-events: none; /* Don't interfere with user interaction */
-        }
-        
-        #drawingCanvas {
-            z-index: 3; /* Top layer - user drawing */
-        }
-        
-        /* Font preload */
-        .font-preload {
-            font-family: 'TeachingPrintDotted';
-            position: absolute;
-            visibility: hidden;
-            height: 0;
-        }
-        
-        /* Letter buttons */
-        .letter-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .letter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .vowels {
-            margin: 10px 0;
-        }
-        
-        .letter-button {
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            background-color: #e9f5e9;
-            border: 2px solid #c8e6c9;
-            border-radius: 8px;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-        }
-        
-        .letter-button:hover {
-            background-color: #d4edd5;
-            transform: scale(1.05);
-        }
-        
-        .letter-button.active {
-            background-color: #4CAF50;
-            color: white;
-            border-color: #3e8e41;
-        }
-        
-        /* Make vowels stand out */
-        .vowels .letter-button {
-            background-color: #ffebcd;
-            border-color: #ffcd9e;
-        }
-        
-        .vowels .letter-button:hover {
-            background-color: #ffe0b2;
-        }
-        
-        .vowels .letter-button.active {
-            background-color: #ff9800;
-            border-color: #f57c00;
-        }
-        
-        /* Mobile styles */
-        @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
-            }
-            
-            .controls-panel {
-                width: 100%;
-                min-width: 100%;
-                height: auto;
-                padding: 10px;
-                overflow-y: auto;
-                max-height: 40vh;
-            }
-            
-            h1 {
-                width: 100%;
-                margin-bottom: 10px;
-                font-size: 24px;
-            }
-            
-            .control-group {
-                margin-bottom: 10px;
-            }
-            
-            .letter-button {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-            
-            button {
-                padding: 10px;
-            }
-            
-            .tracing-panel {
-                height: 60vh;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .letter-button {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Font preload element -->
-    <div class="font-preload">Preload Teaching Print Dotted Font</div>
-    
     <div class="app-container">
-        <!-- Left panel with controls -->
         <div class="controls-panel">
             <h1>Letter Tracing Practice</h1>
-            
             <div class="control-group">
                 <label>Choose a letter:</label>
-                
                 <div class="letter-grid">
-                    <!-- Common consonants -->
-                    <div class="letter-group">
-                        <div class="letter-button" data-letter="t">t</div>
-                        <div class="letter-button" data-letter="n">n</div>
-                        <div class="letter-button" data-letter="r">r</div>
-                        <div class="letter-button" data-letter="m">m</div>
-                        <div class="letter-button" data-letter="d">d</div>
-                        <div class="letter-button" data-letter="s">s</div>
-                        <div class="letter-button" data-letter="l">l</div>
-                        <div class="letter-button" data-letter="c">c</div>
-                        <div class="letter-button" data-letter="p">p</div>
-                        <div class="letter-button" data-letter="b">b</div>
-                        <div class="letter-button" data-letter="f">f</div>
-                        <div class="letter-button" data-letter="v">v</div>
-                    </div>
-                    
-                    <!-- Vowels -->
-                    <div class="letter-group vowels">
-                        <div class="letter-button" data-letter="a">a</div>
-                        <div class="letter-button" data-letter="e">e</div>
-                        <div class="letter-button" data-letter="i">i</div>
-                        <div class="letter-button" data-letter="o">o</div>
-                        <div class="letter-button" data-letter="u">u</div>
-                    </div>
-                    
-                    <!-- Less common consonants -->
-                    <div class="letter-group">
-                        <div class="letter-button" data-letter="g">g</div>
-                        <div class="letter-button" data-letter="h">h</div>
-                        <div class="letter-button" data-letter="j">j</div>
-                        <div class="letter-button" data-letter="k">k</div>
-                        <div class="letter-button" data-letter="q">q</div>
-                        <div class="letter-button" data-letter="w">w</div>
-                        <div class="letter-button" data-letter="x">x</div>
-                        <div class="letter-button" data-letter="y">y</div>
-                        <div class="letter-button" data-letter="z">z</div>
-                    </div>
+                    <script>
+                        const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+                        document.write(letters.map(letter => `<div class='letter-button' data-letter='${letter}'>${letter}</div>`).join(""));
+                    </script>
                 </div>
             </div>
-            
-            <div class="control-group">
-                <button id="clearButton">Clear</button>
-            </div>
         </div>
-        
-        <!-- Right panel with the tracing area -->
         <div class="tracing-panel">
             <div class="canvas-container">
                 <canvas id="letterCanvas"></canvas>
@@ -310,36 +130,27 @@
     </div>
 
     <script>
-        // Prevent default touch behavior to stop unwanted scrolling
-        document.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-        
         document.addEventListener('DOMContentLoaded', function() {
             const letterCanvas = document.getElementById('letterCanvas');
             const detectionCanvas = document.getElementById('detectionCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
-            const clearButton = document.getElementById('clearButton');
-            
             const letterCtx = letterCanvas.getContext('2d');
             const detectionCtx = detectionCanvas.getContext('2d');
             const drawCtx = drawingCanvas.getContext('2d');
-            
+            const letterButtons = document.querySelectorAll('.letter-button');
+            let currentLetter = 't';
             let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
-            let currentLetter = 't'; // Initialize with 't'
+            let strokeIndex = 0;
             
-            // Set the initial active button
-            document.querySelector('[data-letter="t"]').classList.add('active');
+            const strokeData = {
+                't': [[{x: 50, y: 10}, {x: 50, y: 90}], [{x: 30, y: 50}, {x: 70, y: 50}]],
+                'c': [[{x: 70, y: 20}, {x: 30, y: 50}, {x: 70, y: 80}]]
+            };
             
-            // Set canvas size based on container
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
                 const height = container.clientHeight;
-                
-                console.log("Resizing canvas to: ", width, height);
                 
                 letterCanvas.width = width;
                 letterCanvas.height = height;
@@ -348,248 +159,53 @@
                 drawingCanvas.width = width;
                 drawingCanvas.height = height;
                 
-                // Add visible borders to the canvases for debugging
-                const ctx = letterCanvas.getContext('2d');
-                ctx.strokeStyle = 'blue';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(0, 0, width, height);
-                
-                // Redraw the current letter when resizing
                 drawLetter(currentLetter);
             }
             
-            // Initialize canvas size and draw the letter immediately
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            // Force an immediate draw of the initial letter - this ensures it's visible right away
-            drawLetter(currentLetter);
-            
-            // Draw the dotted letter
             function drawLetter(letter) {
-                // Clear the canvas
                 letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
-                detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                strokeIndex = 0;
                 
-                const centerX = letterCanvas.width / 2;
-                const centerY = letterCanvas.height / 2;
-                
-                // Make the font as large as possible while keeping it centered
-                // Aim for about 6 inches (roughly 70-80% of available height)
-                let fontSize;
-                
-                // Different size calculation for mobile vs desktop
-                if (window.innerWidth <= 768) {
-                    fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.8;
-                } else {
-                    fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.8;
-                }
-                
-                // Make sure font is loaded before drawing
-                const fontCheck = setInterval(function() {
-                    try {
-                        letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                        letterCtx.textAlign = 'center';
-                        letterCtx.textBaseline = 'middle';
-                        letterCtx.fillStyle = '#888';
-                        letterCtx.fillText(letter, centerX, centerY);
-                        
-                        // Font is drawn, now create the detection layer
-                        setupDetectionLayer(letter, fontSize, centerX, centerY);
-                        
-                        clearInterval(fontCheck);
-                    } catch (e) {
-                        console.log("Font not loaded yet, retrying...");
-                    }
-                }, 100);
-                
-                // This was moved to a separate function for better font loading
-                function setupDetectionLayer(letter, fontSize, centerX, centerY, isFallback = false) {
-                    // Draw a solid version in the detection canvas (for hit detection)
-                    if (isFallback) {
-                        detectionCtx.font = `${fontSize}px Arial, sans-serif`;
-                    } else {
-                        detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                    }
-                    
-                    detectionCtx.textAlign = 'center';
-                    detectionCtx.textBaseline = 'middle';
-                    
-                    // Create a wide detection area with higher sensitivity
-                    detectionCtx.fillStyle = 'red'; // Color doesn't matter as we only check alpha
-                    
-                    // Draw multiple overlapping copies to create a thicker detection area
-                    const offset = 25; // High sensitivity - wide margin of error
-                    for (let offsetX = -offset; offsetX <= offset; offsetX += 5) {
-                        for (let offsetY = -offset; offsetY <= offset; offsetY += 5) {
-                            detectionCtx.fillText(letter, centerX + offsetX, centerY + offsetY);
-                        }
-                    }
-                    
-                    // Draw a red border around the detection canvas for debugging
-                    detectionCtx.strokeStyle = 'red';
-                    detectionCtx.lineWidth = 2;
-                    detectionCtx.strokeRect(0, 0, detectionCanvas.width, detectionCanvas.height);
-                }
+                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
+                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
+                letterCtx.textAlign = 'center';
+                letterCtx.textBaseline = 'middle';
+                letterCtx.fillStyle = '#888';
+                letterCtx.fillText(letter, letterCanvas.width / 2, letterCanvas.height / 2);
             }
             
-            // Check if a point is on the letter outline
-            function isPointOnLetter(x, y) {
-                // Get pixel data at the point
-                const pixel = detectionCtx.getImageData(x, y, 1, 1).data;
-                
-                // If the alpha value is greater than 0, we're on the letter
-                return pixel[3] > 0;
-            }
-            
-            // Generate points close to current position but on the letter
-            function findClosestPointOnLetter(x, y, radius = 25) {
-                // Check in a pattern outward from the current point
-                for (let r = 1; r <= radius; r += 2) {
-                    for (let angle = 0; angle < 360; angle += 10) {
-                        const radians = angle * Math.PI / 180;
-                        const checkX = x + r * Math.cos(radians);
-                        const checkY = y + r * Math.sin(radians);
-                        
-                        if (isPointOnLetter(checkX, checkY)) {
-                            return { x: checkX, y: checkY };
-                        }
-                    }
-                }
-                
-                // If no point was found, return null
-                return null;
-            }
-            
-            // Drawing functions
             function startDrawing(e) {
-                isDrawing = true;
-                [lastX, lastY] = getCoordinates(e);
-                
-                // Check if the starting point is on the letter outline
-                if (isPointOnLetter(lastX, lastY)) {
-                    drawDot(lastX, lastY);
-                } else {
-                    // Try to find a close point on the letter
-                    const closestPoint = findClosestPointOnLetter(lastX, lastY);
-                    if (closestPoint) {
-                        drawDot(closestPoint.x, closestPoint.y);
-                        [lastX, lastY] = [closestPoint.x, closestPoint.y];
-                    }
+                const {offsetX: x, offsetY: y} = e;
+                const stroke = strokeData[currentLetter]?.[strokeIndex];
+                if (!stroke) return;
+                if (Math.hypot(stroke[0].x - x, stroke[0].y - y) < 20) {
+                    isDrawing = true;
+                    drawCtx.beginPath();
+                    drawCtx.moveTo(x, y);
                 }
             }
             
             function draw(e) {
                 if (!isDrawing) return;
-                
-                e.preventDefault(); // Prevent scrolling on touch devices
-                
-                const [currentX, currentY] = getCoordinates(e);
-                
-                // Check if current point is on letter
-                if (isPointOnLetter(currentX, currentY)) {
-                    drawLine(lastX, lastY, currentX, currentY);
-                    [lastX, lastY] = [currentX, currentY];
-                } else {
-                    // Find closest point on letter
-                    const closestPoint = findClosestPointOnLetter(currentX, currentY);
-                    if (closestPoint) {
-                        drawLine(lastX, lastY, closestPoint.x, closestPoint.y);
-                        [lastX, lastY] = [closestPoint.x, closestPoint.y];
-                    }
-                }
+                const {offsetX: x, offsetY: y} = e;
+                drawCtx.lineTo(x, y);
+                drawCtx.strokeStyle = 'black';
+                drawCtx.lineWidth = 20;
+                drawCtx.lineCap = 'round';
+                drawCtx.stroke();
             }
             
             function stopDrawing() {
                 isDrawing = false;
             }
             
-            // Draw a dot at a specific point (for the start of drawing)
-            function drawDot(x, y) {
-                drawCtx.beginPath();
-                drawCtx.arc(x, y, 4, 0, Math.PI * 2);
-                drawCtx.fillStyle = 'black';
-                drawCtx.fill();
-            }
+            drawingCanvas.addEventListener('pointerdown', startDrawing);
+            drawingCanvas.addEventListener('pointermove', draw);
+            drawingCanvas.addEventListener('pointerup', stopDrawing);
             
-            // Draw a line between two points
-            function drawLine(fromX, fromY, toX, toY) {
-                drawCtx.beginPath();
-                drawCtx.moveTo(fromX, fromY);
-                drawCtx.lineTo(toX, toY);
-                drawCtx.strokeStyle = 'black';
-                drawCtx.lineWidth = 8; // Thicker line
-                drawCtx.lineCap = 'round';
-                drawCtx.lineJoin = 'round';
-                drawCtx.stroke();
-            }
-            
-            // Get coordinates for both mouse and touch events
-            function getCoordinates(e) {
-                let x, y;
-                
-                if (e.type.includes('mouse')) {
-                    const rect = drawingCanvas.getBoundingClientRect();
-                    x = e.clientX - rect.left;
-                    y = e.clientY - rect.top;
-                } else {
-                    // Touch event
-                    const rect = drawingCanvas.getBoundingClientRect();
-                    x = e.touches[0].clientX - rect.left;
-                    y = e.touches[0].clientY - rect.top;
-                }
-                
-                return [x, y];
-            }
-            
-            // Event listeners for mouse
-            drawingCanvas.addEventListener('mousedown', startDrawing);
-            drawingCanvas.addEventListener('mousemove', draw);
-            document.addEventListener('mouseup', stopDrawing);
-            
-            // Event listeners for touch devices
-            drawingCanvas.addEventListener('touchstart', function(e) {
-                e.preventDefault(); // Prevent scrolling
-                startDrawing(e);
-            });
-            
-            drawingCanvas.addEventListener('touchmove', function(e) {
-                e.preventDefault(); // Prevent scrolling
-                draw(e);
-            });
-            
-            drawingCanvas.addEventListener('touchend', function(e) {
-                e.preventDefault(); // Prevent scrolling
-                stopDrawing();
-            });
-            
-            // Letter buttons functionality
-            const letterButtons = document.querySelectorAll('.letter-button');
-            let currentLetter = 'a'; // Default letter
-            
-            // Set the initial active button
-            document.querySelector('[data-letter="a"]').classList.add('active');
-            
-            letterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    letterButtons.forEach(btn => btn.classList.remove('active'));
-                    
-                    // Add active class to clicked button
-                    this.classList.add('active');
-                    
-                    // Get the letter and update
-                    currentLetter = this.getAttribute('data-letter');
-                    drawLetter(currentLetter);
-                    drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-                });
-            });
-            
-            // Clear button
-            clearButton.addEventListener('click', function() {
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            });
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
         });
     </script>
 </body>
