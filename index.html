@@ -98,7 +98,7 @@
             height: 100%;
             touch-action: none;
             background-color: white;
-            border-radius: 2px;
+            border: 2px solid #eee;
         }
         
         canvas {
@@ -267,11 +267,11 @@
                         <div class="letter-button" data-letter="p">p</div>
                         <div class="letter-button" data-letter="b">b</div>
                         <div class="letter-button" data-letter="f">f</div>
+                        <div class="letter-button" data-letter="v">v</div>
                     </div>
                     
                     <!-- Vowels -->
                     <div class="letter-group vowels">
-                        <div class="letter-button" data-letter="v">v</div>
                         <div class="letter-button" data-letter="a">a</div>
                         <div class="letter-button" data-letter="e">e</div>
                         <div class="letter-button" data-letter="i">i</div>
@@ -569,8 +569,11 @@
                 drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             });
             
-            // Initialize with the first letter
-            drawLetter('a');
+            // Initialize with the first letter ('t')
+            const initialLetter = 't';
+            document.querySelector(`[data-letter="${initialLetter}"]`).classList.add('active');
+            currentLetter = initialLetter;
+            drawLetter(currentLetter);
         });
     </script>
 </body>
