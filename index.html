@@ -123,7 +123,6 @@
         <div class="tracing-panel">
             <div class="canvas-container">
                 <canvas id="letterCanvas"></canvas>
-                <canvas id="detectionCanvas"></canvas>
                 <canvas id="drawingCanvas"></canvas>
             </div>
         </div>
@@ -132,101 +131,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const letterCanvas = document.getElementById('letterCanvas');
-            const detectionCanvas = document.getElementById('detectionCanvas');
             const drawingCanvas = document.getElementById('drawingCanvas');
             const letterCtx = letterCanvas.getContext('2d');
-            const detectionCtx = detectionCanvas.getContext('2d');
             const drawCtx = drawingCanvas.getContext('2d');
             const letterButtons = document.querySelectorAll('.letter-button');
             let currentLetter = 't';
-            let isDrawing = false;
-
+            
             function resizeCanvas() {
                 const container = document.querySelector('.canvas-container');
                 const width = container.clientWidth;
-                const height = container.clientHeight;
-
-                letterCanvas.width = width;
-                letterCanvas.height = height;
-                detectionCanvas.width = width;
-                detectionCanvas.height = height;
-                drawingCanvas.width = width;
-                drawingCanvas.height = height;
-
-                drawLetter(currentLetter);
-            }
-
-            function drawLetter(letter) {
-                letterCtx.clearRect(0, 0, letterCanvas.width, letterCanvas.height);
-                detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
-                drawCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-
-                const fontSize = Math.min(letterCanvas.width, letterCanvas.height) * 0.9;
-                const centerX = letterCanvas.width / 2;
-                const centerY = letterCanvas.height / 2;
-
-                letterCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                letterCtx.textAlign = 'center';
-                letterCtx.textBaseline = 'middle';
-                letterCtx.fillStyle = '#888';
-                letterCtx.fillText(letter, centerX, centerY);
-
-                detectionCtx.font = `${fontSize}px TeachingPrintDotted, Arial, sans-serif`;
-                detectionCtx.textAlign = 'center';
-                detectionCtx.textBaseline = 'middle';
-                detectionCtx.fillStyle = 'red';
-                detectionCtx.fillText(letter, centerX, centerY);
-            }
-
-            function isPointOnLetter(x, y) {
-                const pixel = detectionCtx.getImageData(x, y, 1, 1).data;
-                return pixel[3] > 0;
-            }
-
-            function startDrawing(e) {
-                const x = e.offsetX;
-                const y = e.offsetY;
-                if (isPointOnLetter(x, y)) {
-                    isDrawing = true;
-                    drawCtx.beginPath();
-                    drawCtx.moveTo(x, y);
-                }
-            }
-
-            function draw(e) {
-                if (!isDrawing) return;
-                const x = e.offsetX;
-                const y = e.offsetY;
-                if (isPointOnLetter(x, y)) {
-                    drawCtx.lineTo(x, y);
-                    drawCtx.strokeStyle = 'black';
-                    drawCtx.lineWidth = 20;
-                    drawCtx.lineCap = 'round';
-                    drawCtx.stroke();
-                }
-            }
-
-            function stopDrawing() {
-                isDrawing = false;
-            }
-
-            drawingCanvas.addEventListener('pointerdown', startDrawing);
-            drawingCanvas.addEventListener('pointermove', draw);
-            drawingCanvas.addEventListener('pointerup', stopDrawing);
-            drawingCanvas.addEventListener('pointerout', stopDrawing);
-
-            letterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    letterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentLetter = this.getAttribute('data-letter');
-                    drawLetter(currentLetter);
-                });
-            });
-
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-        });
-    </script>
-</body>
-</html>
